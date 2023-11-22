@@ -84,3 +84,17 @@ class TestSubscriptionForm:
         form.save(commit=False)
         subscription.refresh_from_db()
         assert subscription.status == enum.SubscriptionStatusEnum.PENDING
+
+    def test_no_mailing_lists(self, user):
+        form = forms.SubscriptionForm(user=user)
+        assert len(form.fields) == 1
+        assert "global-deny" in form.fields
+
+    def test_no_mailing_lists_can_global_deny(self, user):
+        assert not models.GlobalDeny.objects.filter(user=user).exists()
+        form = forms.SubscriptionForm(user=user, data={"global-deny": True})
+        assert len(form.fields) == 1
+        assert "global-deny" in form.fields
+        form.is_valid()
+        form.save()
+        assert models.GlobalDeny.objects.filter(user=user).exists()

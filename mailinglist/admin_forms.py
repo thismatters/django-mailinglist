@@ -62,7 +62,7 @@ class ImportForm(forms.Form):
 
 class ConfirmForm(forms.Form):
     def clean(self):
-        value = self.cleaned_data["confirm"]
+        value = self.cleaned_data.get("confirm", False)
 
         if not value:
             raise forms.ValidationError("You should confirm in order to continue.")

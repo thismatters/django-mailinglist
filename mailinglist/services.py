@@ -24,10 +24,9 @@ class MessageService:
         )
 
     def _prepare(self, *, subscription, message=None, suffix="txt", _for="message"):
-        mailing_list = None
         if message is not None:
             mailing_list = message.mailing_list
-        elif subscription is not None:
+        else:
             mailing_list = subscription.mailing_list
 
         template = self._get_template(

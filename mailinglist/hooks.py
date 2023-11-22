@@ -21,6 +21,5 @@ class MailinglistDefaultHookset:
         msg = EmailMultiAlternatives(
             to=to, body=body, subject=subject, from_email=from_email
         )
-        if html_body is not None:
-            msg.attach_alternative(html_body, "text/html")
+        msg.attach_alternative(html_body, "text/html")
         msg.send()

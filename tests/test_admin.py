@@ -138,6 +138,21 @@ class TestSubscriptionAdmin:
             in confirmed_subscription_import_response.content
         )
 
+    def test_subscribers_import_bad_post(self, admin_client, mailing_list):
+        response = admin_client.post(
+            reverse("admin:mailinglist_subscription_import"),
+            {
+                "mailing_list": mailing_list.pk,
+                "ignore_errors": True,
+            },
+            follow=True,
+        )
+        print(response.content)
+        assert (
+            b'<ul class="errorlist"><li>This field is required.</li></ul>'
+            in response.content
+        )
+
     def test_subscribers_import_denied(self, admin_client, admin_user):
         admin_user.is_superuser = False
         admin_user.save()
@@ -167,6 +182,17 @@ class TestSubscriptionAdmin:
         )
         assert response.status_code == 302
         assert response.url == reverse("admin:mailinglist_subscription_import")
+
+    def test_subscribers_import_confirm_bad_post(
+        self, admin_client, subscription_import_response
+    ):
+        response = admin_client.post(
+            reverse("admin:mailinglist_subscription_import_confirm"),
+            {"confirm": False},
+            follow=False,
+        )
+        print(response.content)
+        assert b"<li>You should confirm in order to continue.</li>" in response.content
 
 
 class TestMessageAdmin:
