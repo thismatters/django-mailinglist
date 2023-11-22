@@ -1,7 +1,7 @@
 Django Mailinglist
 ===================
 [![PyPI](https://img.shields.io/pypi/v/django-mailinglist?color=156741&logo=python&logoColor=ffffff&style=for-the-badge)](https://pypi.org/project/django-mailinglist/)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/thismatters/django-mailinglist/tests.yml?branch=main&color=156741&label=CI&logo=github&style=for-the-badge)](https://github.com/thismatters/django-mailinglist/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/thismatters/django-mailinglist/test.yml?branch=main&color=156741&label=CI&logo=github&style=for-the-badge)](https://github.com/thismatters/django-mailinglist/actions)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/django-mailinglist?color=156741&logo=python&logoColor=white&style=for-the-badge)](https://pypi.org/project/django-mailinglist/)
 [![PyPI - Django Version](https://img.shields.io/pypi/djversions/django-mailinglist?color=156741&logo=django&logoColor=ffffff&style=for-the-badge)](https://pypi.org/project/django-mailinglist/)
 [![codecov](https://codecov.io/gh/thismatters/django-mailinglist/branch/main/graph/badge.svg?token=K1AZGNPDRJ)](https://codecov.io/gh/thismatters/django-mailinglist)
