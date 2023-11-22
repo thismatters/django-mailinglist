@@ -13,10 +13,10 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "3.x"
-          cache: pip
-          cache-dependency-path: |
-            setup.py
-            tox.ini
+        cache: pip
+        cache-dependency-path: |
+          setup.py
+          tox.ini
     - name: Install pypa/build
       run: >-
         python3 -m
