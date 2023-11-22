@@ -1,0 +1,6 @@
+<h1>Archive of {{ object.name }}</h1>
+<ul>
+{% for message in object.published_messages %}
+    <li><a href="{% url 'mailinglist:archive' object.slug message.slug %}">{{message.title}}</a></li>
+{% endfor %}
+</ul>

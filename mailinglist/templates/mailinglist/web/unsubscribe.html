@@ -1,0 +1,11 @@
+{% if is_subscription %}
+<h1>Sorry to see you go!</h1>
+<p>But we totally understand, and we respect your decision</p>
+{% else %}
+<h1>No Subscription Found</h1>
+<p>Bad news. We couldn't find your subscription.
+The token in the URL is invalid! Sorry.
+Only the URL in your newsletter email will work!
+Alternately, you can <a href="{% url 'mailinglist:global_deny' %}">globally unsubscribe from all mailing lists on this site.</a>
+</p>
+{% endif %}

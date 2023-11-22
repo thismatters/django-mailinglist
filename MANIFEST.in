@@ -1,0 +1,7 @@
+# Text files
+include README.md
+include LICENSE.txt
+include CHANGELOG.md
+
+#  templates
+recursive-include mailinglist/templates *

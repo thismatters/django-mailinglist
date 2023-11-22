@@ -1,0 +1,6 @@
+<h1>Current Subscriptions</h1>
+<form action="{% url 'mailinglist:subscriptions' object.token %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+</form>

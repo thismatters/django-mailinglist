@@ -1,0 +1,46 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Preview message{{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../../../../">Home</a> &rsaquo;
+     <a href="../../../">Newsletter</a> &rsaquo;
+     <a href="../../">Message</a> &rsaquo;
+     <a href="../">{{ message|truncatewords:"18" }}</a> &rsaquo;
+     Preview
+</div>
+{% endblock %}
+
+
+{% block content %}
+<h1>Preview Message</h1>
+<div id="content-main">
+  <ul class="object-tools">
+    <li><a href='{% url "admin:mailinglist_message_change" message.id %}'>Change</a></li>
+    <li><a href='{% url "admin:mailinglist_message_submit" message.id %}'>Create submission</a></li>
+  </ul>
+
+{% comment %}
+    <h4>Attachments</h4>
+    <ul>
+    {% for att in attachments %}
+    <li>{{ att.file.name }} ({{ att.file.size|filesizeformat }})</li>
+    {% empty %}
+    <li>No Attachments</li>
+    {% endfor %}
+    </ul>
+{% endcomment %}
+
+    {% if message.mailing_list.send_html %}
+    <h4>HTML</h4>
+    <iframe src ='{% url "admin:mailinglist_message_preview_html" message.id %}' width="960px" height="720px"></iframe>
+    {% endif %}
+
+    <h4>Text</h4>
+    <iframe src ='{% url "admin:mailinglist_message_preview_text" message.id %}' width="960px" height="720px"></iframe>
+</div>
+<br/>
+<br/>
+
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Import addresses{{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="../../../../">
+    Home
+  </a>
+   &rsaquo;
+   <a href="../../../">
+     Newsletter
+  </a>
+  &rsaquo;
+  <a href="../../">
+     Subscriptions
+  </a>
+  &rsaquo;
+  <a href="../">
+    Import addresses
+  </a>
+  &rsaquo;
+    Confirm import
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Confirm import</h1>
+<div id="content-main">
+    <ul>
+    {% for email, name in subscribers.items %}
+    <li>&lt;{{ email }}&gt; {% if name.first_name %}{{ name.first_name }}{% endif %}{% if name.first_name and name.last_name %} {% endif %}{% if name.last_name %}{{ name.last_name }}{% endif %}</li>
+    {% endfor %}
+    </ul>
+    <form enctype="multipart/form-data" method="post">
+    <table>
+    {{ form.as_table }}
+    </table>
+    {% csrf_token %}
+    <input type="submit" name="submit" value="Confirm"/>
+    </form>
+</div>
+<br/>
+<br/>
+
+{% endblock %}

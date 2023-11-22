@@ -1,0 +1,36 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Import addresses{{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="../../../">
+    Home
+  </a>
+   &rsaquo;
+   <a href="../../">
+     Newsletter
+  </a>
+  &rsaquo;
+  <a href="../">
+     Subscriptions
+  </a>
+  &rsaquo;
+  Import addresses
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Import addresses</h1>
+<div id="content-main">
+    <form enctype="multipart/form-data" method="post">
+    <table>
+    {{ form.as_table }}
+    </table>
+    {% csrf_token %}
+    <input type="submit" name="submit" value="Upload"/>
+    </form>
+</div>
+<br/>
+<br/>
+
+{% endblock %}

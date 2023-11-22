@@ -1,0 +1,6 @@
+<p>Hello,</p>
+<p>You have indicated that you wish to join the mailing list "{{ subscription.mailing_list.name }}". If you have received this message in error, kindly ignore it.</p>
+<p>If you do wish to join the mailing list please click the link below:</p>
+<a href="{{ BASE_URL }}{% url 'mailinglist:subscribe_confirm' subscription.token %}">Confirm email and join mailing list</a>
+<p>Thanks</p>
+<p>- {{ subscription.mailing_list.sender }}</p>

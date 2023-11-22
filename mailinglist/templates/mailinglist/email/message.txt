@@ -1,0 +1,18 @@
+# {{ message.mailing_list.name }}
+
+## {{ message.title }}
+
+++++++++++++++++++++
+{% for message_part in message.message_parts.all %}
+### {{ message_part.heading }}
+
+{{ message_part.text|safe }}
+
+{% endfor %}
+++++++++++++++++++++
+{% if message.mailing_list.visible %}
+Read online: {{ BASE_URL }}{% url 'mailinglist:archive' message.mailing_list.slug message.slug %}
+{% endif %}
+{% if subscription %}
+Unsubscribe: {{ BASE_URL }}{% url 'mailinglist:unsubscribe' subscription.token %}
+{% endif %}

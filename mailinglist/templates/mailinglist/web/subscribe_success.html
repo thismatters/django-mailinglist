@@ -1,0 +1,5 @@
+<h1>Hello</h1>
+<p>You are joining mailing list "{{ object.name }}"! Congratulations.</p>
+{% if requires_confirmation %}
+<p>You should be receiving an email shortly to confirm your email address. Click the link in that email to fully join "{{ object.name }}".</p>
+{% endif %}

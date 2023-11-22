@@ -1,0 +1,7 @@
+<h1>Hello</h1>
+<p>You are about to globally unsubscribe from all mailing list at "{{ BASE_URL }}".</p>
+<form action="{% url 'mailinglist:global_deny' %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+</form>

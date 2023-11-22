@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ message.mailing_list.name }}: {{ message.title }}</title>
+</head>
+<body>
+    <h1>{{ message.mailing_list.name }}</h1>
+    <h2>{{ message.title }}</h2>
+    <hr />
+    {% for message_part in message.message_parts.all %}
+        <h3>{{ message_part.heading }}</h3>
+        {% comment %}
+        {% include thumbnail_template %}
+        {% endcomment %}
+
+        <div>{{ message_part.html_text|safe }}</div>
+
+    {% endfor %}
+    <hr />
+    <ul>
+        {% if message.mailing_list.visible %}
+        <li><a href="{{ BASE_URL }}{% url 'mailinglist:archive' message.mailing_list.slug message.slug %}">Read message online</a></li>
+        {% endif %}
+        {% if subscription %}
+        <li><a href="{{ BASE_URL }}{% url 'mailinglist:unsubscribe' subscription.token %}">Unsubscribe</a></li>
+        {% endif %}
+    </ul>
+    {% if attachment_links %}
+        {% for att in message.attachments.all %}
+            {% if forloop.first %}
+                <strong>Attachments</strong>
+                <table>
+            {% endif %}
+            <tr>
+                <td>
+                    &#128206; <a href="{{ att.file.url }}">{{ att.file_name }}</a> ({{ att.file.size|filesizeformat }})
+                </td>
+            </tr>
+            {% if forloop.last %}
+                </table>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</body>
+</html>

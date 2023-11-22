@@ -1,0 +1,1 @@
+Subscription Confirmation for "{{ subscription.mailing_list.name }}"

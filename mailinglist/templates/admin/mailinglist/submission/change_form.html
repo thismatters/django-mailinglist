@@ -1,0 +1,12 @@
+{% extends "admin/change_form.html" %}
+
+{% load admin_urls %}
+{% load static %}
+
+{% block object-tools-items %}
+  {{ block.super }}
+
+  {% if original %}
+    <li><a href="{% url opts|admin_urlname:'publish' original.pk %}" id="submitlink">Publish</a></li>
+  {% endif %}
+{% endblock %}

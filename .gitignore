@@ -1,0 +1,6 @@
+**/__pycache__/
+.pytest*
+*.egg-info
+**/db.sqlite3*
+.tox
+.coverage

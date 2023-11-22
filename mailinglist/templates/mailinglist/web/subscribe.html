@@ -1,0 +1,7 @@
+<h1>Hello</h1>
+<p>You are about to subscribe to the mailing list "{{ object.name }}".</p>
+<form action="{% url 'mailinglist:subscribe' object.slug %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+</form>
