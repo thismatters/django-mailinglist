@@ -4,8 +4,10 @@ Changes to this project will be documented in this file.
 ## [Unreleased]
 ### Added
 ### Changed
+- More fiddling with the badges
 ### Removed
 ### Fixed
+
 
 ## [0.1.2]
 ### Changed
