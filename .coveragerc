@@ -1,0 +1,6 @@
+[run]
+source = mailinglist
+branch = True
+
+[report]
+omit = mailinglist/migrations/*
