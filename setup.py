@@ -19,6 +19,7 @@ setup(
         "plaintext as well as HTML templates (facilitated by Markdown)."
     ),
     long_description=README,
+    long_description_content_type="text/markdown",
     install_requires=[
         "Django>=3.2.0",
         "Markdown>=3.3.0",

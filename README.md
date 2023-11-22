@@ -44,24 +44,15 @@ urlpatterns = [
 
 Settings (and their defaults) are outlined below:
 
-* `MAILINGLIST_BASE_URL`
-    * Specify the base url (including protocol! No trailing slash!) for linkbacks to the archive and unsubscribe links.
-* `MAILINGLIST_DEFAULT_SENDER_EMAIL`
-    * The default email address for communication with subscribers.
-* `MAILINGLIST_DEFAULT_SENDER_NAME = "Administrator`
-    * The name or title of the person who will manage subscribers.
-* `MAILINGLIST_USER_MODEL = settings.AUTH_USER_MODEL`
-    * Specify the pool of potential subscribers; this doesn't have to be the same model that you use for authenticating users to your project.
-* `MAILINGLIST_HOOKSET = "mailinglist.hooks.MailinglistDefaultHookset"`
-    * You may provide a class which provides the hooks found in the package module to override certain behaviors (sending email mostly).
-* `MAILINGLIST_CONFIRM_EMAIL_SUBSCRIBE = True`
-    * Should new subscribers be sent an email to verify their email address?
-* `MAILINGLIST_EMAIL_DELAY = None`
-    * Amount of seconds to wait between sending an individual email.
-* `MAILINGLIST_BATCH_SIZE = 200`
-    * The number of individual email which constitute a "batch".
-* `MAILINGLIST_BATCH_DELAY = 10`
-    * Amount of seconds to wait after completing a "batch".
+* `MAILINGLIST_BASE_URL` : Specify the base url (including protocol! No trailing slash!) for linkbacks to the archive and unsubscribe links.
+* `MAILINGLIST_DEFAULT_SENDER_EMAIL` : The default email address for communication with subscribers.
+* `MAILINGLIST_DEFAULT_SENDER_NAME = "Administrator` : The name or title of the person who will manage subscribers.
+* `MAILINGLIST_USER_MODEL = settings.AUTH_USER_MODEL` : Specify the pool of potential subscribers; this doesn't have to be the same model that you use for authenticating users to your project.
+* `MAILINGLIST_HOOKSET = "mailinglist.hooks.MailinglistDefaultHookset"` : You may provide a class which provides the hooks found in the package module to override certain behaviors (sending email mostly).
+* `MAILINGLIST_CONFIRM_EMAIL_SUBSCRIBE = True` : Should new subscribers be sent an email to verify their email address?
+* `MAILINGLIST_EMAIL_DELAY = None` : Amount of seconds to wait between sending an individual email.
+* `MAILINGLIST_BATCH_SIZE = 200` : The number of individual email which constitute a "batch".
+* `MAILINGLIST_BATCH_DELAY = 10` : Amount of seconds to wait after completing a "batch".
 
 ## Functionality
 
