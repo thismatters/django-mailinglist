@@ -4,10 +4,16 @@ Changes to this project will be documented in this file.
 ## [Unreleased]
 ### Added
 ### Changed
-- More fiddling with the badges
 ### Removed
 ### Fixed
 
+
+## [0.1.3]
+### Added
+- `MessageAttachment` model and machinery to manage and send attachments.
+- `List-Unsubscribe` header to outgoing messages.
+### Changed
+- More fiddling with the badges
 
 ## [0.1.2]
 ### Changed

@@ -2,6 +2,7 @@ from datetime import timedelta
 from unittest.mock import Mock, patch, call
 
 import pytest
+from django.conf import settings
 from django.test import override_settings
 from django.urls import reverse
 from django.utils.timezone import now
@@ -97,10 +98,17 @@ class TestMessageService:
         ret = services.MessageService().prepare_message_kwargs(
             subscription=subscription, message=message
         )
+        confirm_url = reverse(
+            "mailinglist:unsubscribe", kwargs={"token": subscription.token}
+        )
         assert ret == {
             "subject": "generic return",
             "body": "generic return",
             "html_body": "generic return",
+            "attachments": [],
+            "headers": {
+                "List-Unsubscribe": f"{settings.MAILINGLIST_BASE_URL}{confirm_url}"
+            },
         }
         p_prepare.assert_has_calls(
             [
@@ -109,6 +117,37 @@ class TestMessageService:
                 ),
                 call(message=message, subscription=subscription, suffix="txt"),
                 call(message=message, subscription=subscription, suffix="html"),
+            ]
+        )
+
+    @patch.object(services.MessageService, "_prepare")
+    def test_prepare_message_kwargs_attachments(
+        self, p_prepare, subscription, message, message_attachment
+    ):
+        p_prepare.return_value = "generic return"
+        ret = services.MessageService().prepare_message_kwargs(
+            subscription=subscription, message=message
+        )
+        assert ret["attachments"] == [message_attachment]
+
+    @patch.object(services.MessageService, "_prepare")
+    def test_prepare_message_kwargs_no_html(
+        self, p_prepare, subscription, message, message_attachment
+    ):
+        message.mailing_list.send_html = False
+        message.mailing_list.save()
+        p_prepare.return_value = "generic return"
+        ret = services.MessageService().prepare_message_kwargs(
+            subscription=subscription, message=message
+        )
+        assert "html_body" not in ret
+        assert p_prepare.call_count == 2
+        p_prepare.assert_has_calls(
+            [
+                call(
+                    message=message, subscription=subscription, _for="message_subject"
+                ),
+                call(message=message, subscription=subscription, suffix="txt"),
             ]
         )
 

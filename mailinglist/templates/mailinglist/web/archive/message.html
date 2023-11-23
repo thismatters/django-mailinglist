@@ -7,3 +7,15 @@
     {{ part.html_text | safe }}
 </div>
 {% endfor %}
+
+
+{% for attachment in message.attachments.all %}
+    {% if forloop.first %}
+<strong>Attachments</strong>
+<ul>
+    {% endif %}
+    <li><a href="{{ attachment.file.url }}">{{ attachment.filename }}</a> ({{ attachment.file.size|filesizeformat }})</li>
+    {% if forloop.last %}
+</ul>
+    {% endif %}
+{% endfor %}

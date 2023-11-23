@@ -1,9 +1,11 @@
+from pathlib import Path
+
 from django.db import models
 from django.utils.timezone import now
 from django_enumfield.enum import EnumField
 from markdown import markdown
 
-from mailinglist.conf import settings
+from mailinglist.conf import hookset, settings
 from mailinglist.enum import SubmissionStatusEnum, SubscriptionStatusEnum
 
 
@@ -120,7 +122,42 @@ class MessagePart(models.Model):
         ]
 
 
-# TODO: attachments
+def attachment_upload_to(instance, filename):
+    return Path(
+        "mailinglist-static",
+        "attachments",
+        str(instance.message.pk),
+        filename,
+    )
+
+
+def hookset_validation_wrapper(value):
+    # Model field validators are referenced in migration files. This wrapper
+    #  allows the hookset to be dynamic without causing chaos in the migration
+    #  file.
+    hookset.message_attachment_file_validator(value)
+
+
+class MessageAttachment(models.Model):
+    message = models.ForeignKey(
+        Message, on_delete=models.CASCADE, related_name="attachments"
+    )
+    file = models.FileField(
+        upload_to=attachment_upload_to,
+        verbose_name="attachment",
+        validators=[hookset_validation_wrapper],
+    )
+    filename = models.CharField(max_length=256, null=False)
+
+    def __str__(self):
+        return f"{self.filename} on {self.message.title}"
+
+    def save(self, **kwargs):
+        # The file name may be mangled by name collisions upon save,
+        #   capture the original filename prior to the first save.
+        if not self.pk:
+            self.filename = str(self.file)
+        super().save(**kwargs)
 
 
 class Submission(models.Model):

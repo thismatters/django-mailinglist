@@ -123,5 +123,7 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 MAILINGLIST_BASE_URL = "http://ilocalhost:8000"
 MAILINGLIST_DEFAULT_SENDER_EMAIL = "test@test.com"

@@ -1,12 +1,14 @@
 import time
 from random import randint
 
+from django.conf import settings
 from django.template.loader import select_template
+from django.urls import reverse
 from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 
 from mailinglist import models
-from mailinglist.conf import hookset, settings
+from mailinglist.conf import hookset
 from mailinglist.enum import SubmissionStatusEnum, SubscriptionStatusEnum
 
 
@@ -40,6 +42,14 @@ class MessageService:
         }
         return template.render(context).strip()
 
+    def _headers(self, *, subscription):
+        _unsubscribe_path = reverse(
+            "mailinglist:unsubscribe", kwargs={"token": subscription.token}
+        )
+        return {
+            "List-Unsubscribe": f"{settings.MAILINGLIST_BASE_URL}{_unsubscribe_path}"
+        }
+
     def prepare_message_subject(self, *, message, subscription):
         return self._prepare(
             message=message,
@@ -62,17 +72,25 @@ class MessageService:
         )
 
     def prepare_message_kwargs(self, *, message, subscription):
-        return {
+        _kwargs = {
             "subject": self.prepare_message_subject(
                 message=message, subscription=subscription
             ),
             "body": self.prepare_message_body(
                 message=message, subscription=subscription
             ),
-            "html_body": self.prepare_message_html_body(
-                message=message, subscription=subscription
-            ),
+            "headers": self._headers(subscription=subscription),
+            "attachments": list(message.attachments.all()),
         }
+        if message.mailing_list.send_html:
+            _kwargs.update(
+                {
+                    "html_body": self.prepare_message_html_body(
+                        message=message, subscription=subscription
+                    )
+                }
+            )
+        return _kwargs
 
     def prepare_confirmation_subject(self, *, subscription):
         return self._prepare(

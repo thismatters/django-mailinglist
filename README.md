@@ -16,6 +16,8 @@ Use pip to install the package
 pip install django-mailinglist
 ```
 
+## Configuration
+
 Then add `mailinglist` and to the `INSTALLED_APPS` list And create settings for `MAILINGLIST_BASE_URL` AND `MAILINGLIST_DEFAULT_SENDER_EMAIL`:
 
 ```
@@ -111,3 +113,29 @@ While sending, a delay can be configured between the sending of each email (`MAI
 ### Global Deny List
 
 The author of this project feels strongly that people should be able to **opt-in** to being on mailing lists. They should also, if they wish, to opt-out of being on any mailing list. The `GlobalDeny` model exists to respect that right of users. When a `GlobalDeny` instance is associated with a user then that user will not receive messages on any mailing list to which they are subscribed, nor will they be able to be subscribed to any additional mailing lists. The user, when managing their subscriptions, will be able to join the global deny list. If a user is unsuccessful in unsubscribing from a mailing list they will be redirected to join the global deny list.
+
+## Comparisons with `django-newsletter`
+
+This project is a direct descendant of [`django-newsletter`](https://github.com/jazzband/django-newsletter) although not a fork. It borrows some amount of code from it (as well as the license), but in general is a full rewrite which uses a services architecture to keep the models thinner. The (subjectively appraised) differences between the architecture of this package and its predecessor are outlined below.
+
+### Improvements
+
+* Easier configuration: doesn't require installing and configuring additional apps.
+* More secure: doesn't leak user data in subscribe/unsubscribe flows; allows use of https.
+* More compliant: doesn't store user data within its own models, project must provide a `User`-like model for storing subscriber user data.
+* Implicit send lists: when a message is published, it is sent to all subscribers (at time of processing) except those explicitly excluded from the submission.
+* Send tracking: tracks each sending of a message to a subscriber so that interrupted sending jobs can be resumed.
+* Lower friction user self-management: the unsubscribe link in outgoing message will immediately unsubscribe the recipient.
+* Global unsubscribe: allows users to globally opt-out of receiving mailing list messages.
+* Pluggable behavior: define your own email send and "user" creation functionality (if you like).
+
+### Drawbacks
+
+* No internationalization: Only English (for now).
+* Worse subscriber import: Only CSV import is supported (for now).
+* Worse documentation: There is a lot of room to grow here!
+* No inline images (yet).
+
+### Equivalent, but different
+
+* Markdown instead of traditional rich text. It is the author's opinion that Markdown is superior to rich text because Markdown retains meaning as plain text, therefore your intent in formatting will be better conveyed in the plaintext version of the message.

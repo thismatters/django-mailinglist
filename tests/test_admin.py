@@ -91,6 +91,11 @@ class TestImmutableAdminMixin:
         assert not admin.ImmutableAdminMixin().has_delete_permission(None, None)
 
 
+class TestUnchangingAdminMixin:
+    def test_change_permission(self):
+        assert not admin.UnchangingAdminMixin().has_change_permission(None, None)
+
+
 class TestSubscriptionAdmin:
     @patch.object(services.SubscriptionService, "subscribe")
     def test_save_object_no_change(self, p_subscribe, subscription_admin, subscription):
@@ -209,6 +214,29 @@ class TestMessageAdmin:
                 f"<iframe src ='/admin/mailinglist/message/{message.pk}/preview/html/'"
             )
             in response.content
+        )
+        assert (
+            str.encode(
+                f"<iframe src ='/admin/mailinglist/message/{message.pk}/preview/text/'"
+            )
+            in response.content
+        )
+
+    def test_preview_no_html(self, admin_client, message, message_part):
+        message.mailing_list.send_html = False
+        message.mailing_list.save()
+        response = admin_client.get(
+            reverse(
+                "admin:mailinglist_message_preview", kwargs={"object_id": message.pk}
+            )
+        )
+        assert response.status_code == 200
+        print(response.content)
+        assert (
+            str.encode(
+                f"<iframe src ='/admin/mailinglist/message/{message.pk}/preview/html/'"
+            )
+            not in response.content
         )
         assert (
             str.encode(

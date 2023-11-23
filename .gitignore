@@ -5,3 +5,5 @@
 .tox
 .coverage
 coverage.xml
+mailinglist-static/*
+TODO.md

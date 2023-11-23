@@ -11,9 +11,6 @@
     <hr />
     {% for message_part in message.message_parts.all %}
         <h3>{{ message_part.heading }}</h3>
-        {% comment %}
-        {% include thumbnail_template %}
-        {% endcomment %}
 
         <div>{{ message_part.html_text|safe }}</div>
 
@@ -27,21 +24,5 @@
         <li><a href="{{ BASE_URL }}{% url 'mailinglist:unsubscribe' subscription.token %}">Unsubscribe</a></li>
         {% endif %}
     </ul>
-    {% if attachment_links %}
-        {% for att in message.attachments.all %}
-            {% if forloop.first %}
-                <strong>Attachments</strong>
-                <table>
-            {% endif %}
-            <tr>
-                <td>
-                    &#128206; <a href="{{ att.file.url }}">{{ att.file_name }}</a> ({{ att.file.size|filesizeformat }})
-                </td>
-            </tr>
-            {% if forloop.last %}
-                </table>
-            {% endif %}
-        {% endfor %}
-    {% endif %}
 </body>
 </html>
