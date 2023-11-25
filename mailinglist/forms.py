@@ -6,6 +6,8 @@ from mailinglist.services import SubscriptionService
 
 
 class SubscribeForm(forms.Form):
+    """Basic subscription details."""
+
     email = forms.EmailField(label="Email:")
     first_name = forms.CharField(label="First name:")
     last_name = forms.CharField(label="Last name:", required=False)
@@ -13,6 +15,10 @@ class SubscribeForm(forms.Form):
 
 
 class SubscriptionForm(forms.Form):
+    """Dynamically generates a series of checkboxes for each visible
+    mailing list so that users can subscribe at their will. Also includes
+    checkbox for global unsubscribe."""
+
     def __init__(self, *args, user, **kwargs):
         super().__init__(*args, **kwargs)
         subscriptions = user.subscriptions.filter(
@@ -22,7 +28,7 @@ class SubscriptionForm(forms.Form):
         self.subscribed_lists = {
             s.mailing_list.pk: s for s in subscriptions if s.mailing_list
         }
-        for mailing_list in models.MailingList.objects.all():
+        for mailing_list in models.MailingList.objects.filter(visible=True):
             self.fields[f"mailing-list_{mailing_list.pk}"] = forms.BooleanField(
                 required=False,
                 initial=mailing_list.pk in self.subscribed_lists,
@@ -42,7 +48,7 @@ class SubscriptionForm(forms.Form):
         else:
             models.GlobalDeny.objects.filter(user=self.user).delete()
         service = SubscriptionService()
-        for mailing_list in models.MailingList.objects.all():
+        for mailing_list in models.MailingList.objects.filter(visible=True):
             wants = self.cleaned_data.get(f"mailing-list_{mailing_list.pk}", False)
             if wants and mailing_list.pk not in self.subscribed_lists:
                 # create subscription

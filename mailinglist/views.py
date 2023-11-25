@@ -54,6 +54,8 @@ class SubscribeFormMixin:
 
 
 class SubscribeView(SubscribeFormMixin, DetailFormView):
+    """Allows users to subscrbe to a mailing list."""
+
     template_name = "mailinglist/web/subscribe.html"
     queryset = models.MailingList.objects.all()
     slug_url_kwarg = "mailing_list_slug"
@@ -63,6 +65,8 @@ class SubscribeView(SubscribeFormMixin, DetailFormView):
 
 
 class GlobalDenyView(SubscribeFormMixin, FormView):
+    """Allows users to subscrbe to the global deny list."""
+
     template_name = "mailinglist/web/global_unsubscribe.html"
 
     def get_success_url(self):
@@ -73,6 +77,9 @@ class GlobalDenyView(SubscribeFormMixin, FormView):
 
 
 class SubscribeSuccessView(DetailView):
+    """Provides user with insight about subscription, namely whether or
+    not they will need to confirm their email address"""
+
     template_name = "mailinglist/web/subscribe_success.html"
     queryset = models.MailingList.objects.all()
     slug_url_kwarg = "mailing_list_slug"
@@ -88,6 +95,8 @@ class SubscribeSuccessView(DetailView):
 
 
 class SubscriptionView(DetailFormView):
+    """Allows the user to view what mailing lists they are subscribed to."""
+
     # Since the subscription might not point to a user who can log in to the
     #  site, we must not rely on `request.user`, we will use the subscription token
     #  as a bearer token and allow the other subscriptions that the
@@ -130,6 +139,9 @@ class IsSubscriptionMixin:
 
 
 class SubscribeConfirmView(IsSubscriptionMixin, TemplateView):
+    """Reachable when user clicks on link in confirmation message, tells
+    user that they are fully subscribed."""
+
     template_name = "mailinglist/web/subscribe_confirm.html"
 
     # Do not want _any_ subscription data leaking into the UI, so keep
@@ -142,6 +154,10 @@ class SubscribeConfirmView(IsSubscriptionMixin, TemplateView):
 
 
 class UnsubscribeView(IsSubscriptionMixin, TemplateView):
+    """Reachable when user clicks unsubscribe link in any sent message.
+    Deactivates user's subscription to the mailing list and provides link
+    to user's subscriptions page"""
+
     # Do not want _any_ subscription data leaking into the UI, so keep
     #   it a simple template view
     template_name = "mailinglist/web/unsubscribe.html"
@@ -152,12 +168,16 @@ class UnsubscribeView(IsSubscriptionMixin, TemplateView):
 
 
 class ArchiveIndexView(DetailView):
+    """Allows user to browse messages published on a mailing list."""
+
     template_name = "mailinglist/web/archive/index.html"
     queryset = models.MailingList.objects.filter(visible=True)
     slug_url_kwarg = "mailing_list_slug"
 
 
 class ArchiveView(DetailView):
+    """Allows user to view messages published on a mailing list."""
+
     template_name = "mailinglist/web/archive/message.html"
     queryset = models.Message.objects.filter(mailing_list__visible=True)
 

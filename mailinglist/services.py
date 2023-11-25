@@ -13,6 +13,8 @@ from mailinglist.enum import SubmissionStatusEnum, SubscriptionStatusEnum
 
 
 class MessageService:
+    """Composes email for sending"""
+
     def _get_template(self, *, mailing_list, suffix="txt", _for="message"):
         _root = "mailinglist/email"
         slug = "global-deny"
@@ -50,28 +52,42 @@ class MessageService:
             "List-Unsubscribe": f"{settings.MAILINGLIST_BASE_URL}{_unsubscribe_path}"
         }
 
-    def prepare_message_subject(self, *, message, subscription):
+    def prepare_message_subject(
+        self, *, message: models.Message, subscription: models.Subscription
+    ) -> str:
+        """Compose the subject line for an outgoing message"""
         return self._prepare(
             message=message,
             subscription=subscription,
             _for="message_subject",
         )
 
-    def prepare_message_body(self, *, message, subscription):
+    def prepare_message_body(
+        self, *, message: models.Message, subscription: models.Subscription
+    ) -> str:
+        """Compose the body for an outgoing message"""
         return self._prepare(
             message=message,
             subscription=subscription,
             suffix="txt",
         )
 
-    def prepare_message_html_body(self, *, message, subscription):
+    def prepare_message_html_body(
+        self, *, message: models.Message, subscription: models.Subscription
+    ) -> str:
+        """Compose the body (in html) for an outgoing message"""
+        if not message.mailing_list.send_html:
+            return None
         return self._prepare(
             message=message,
             subscription=subscription,
             suffix="html",
         )
 
-    def prepare_message_kwargs(self, *, message, subscription):
+    def prepare_message_kwargs(
+        self, *, message: models.Message, subscription: models.Subscription
+    ) -> dict[str, str]:
+        """Composes and structures outgoing message data for email sending"""
         _kwargs = {
             "subject": self.prepare_message_subject(
                 message=message, subscription=subscription
@@ -79,6 +95,7 @@ class MessageService:
             "body": self.prepare_message_body(
                 message=message, subscription=subscription
             ),
+            # TODO: move this message enrichment elsewhere
             "headers": self._headers(subscription=subscription),
             "attachments": list(message.attachments.all()),
         }
@@ -92,26 +109,32 @@ class MessageService:
             )
         return _kwargs
 
-    def prepare_confirmation_subject(self, *, subscription):
+    def prepare_confirmation_subject(self, *, subscription: models.Subscription) -> str:
+        """Compose the subject line for an outgoing confirmation email"""
         return self._prepare(
             subscription=subscription,
             _for="subscribe_subject",
         )
 
-    def prepare_confirmation_body(self, *, subscription):
+    def prepare_confirmation_body(self, *, subscription: models.Subscription) -> str:
+        """Compose the body for an outgoing confirmation email"""
         return self._prepare(
             subscription=subscription,
             _for="subscribe",
         )
 
-    def prepare_confirmation_html_body(self, *, subscription):
+    def prepare_confirmation_html_body(
+        self, *, subscription: models.Subscription
+    ) -> str:
+        """Compose the body (in html) for an outgoing confirmation email"""
         return self._prepare(
             subscription=subscription,
             suffix="html",
             _for="subscribe",
         )
 
-    def prepare_confirmation_kwargs(self, *, subscription):
+    def prepare_confirmation_kwargs(self, *, subscription: models.Subscription):
+        """Composes and structures outgoing message data for confirmation email"""
         return {
             "subject": self.prepare_confirmation_subject(subscription=subscription),
             "body": self.prepare_confirmation_body(subscription=subscription),
@@ -120,6 +143,8 @@ class MessageService:
 
 
 class SubscriptionService:
+    """Manages all subscription and unsubscribe events."""
+
     def _random_string(self, length):
         return get_random_string(
             length=length, allowed_chars="abcdefghijklmnopqrstuvwxyz0123456789-"
@@ -179,7 +204,10 @@ class SubscriptionService:
             **MessageService().prepare_confirmation_kwargs(subscription=subscription),
         )
 
-    def create_user(self, *, email, first_name, last_name):
+    # Type hints get bothersome for this dynamic user model...
+    def create_user(self, *, email: str, first_name: str, last_name: str):
+        """Creates a "user" for a new subscription. This method calls
+        the same-named method in the hookset to actually perform the action."""
         user = hookset.create_user(
             email=email, first_name=first_name, last_name=last_name
         )
@@ -194,12 +222,19 @@ class SubscriptionService:
             subscription = self._new_subscription(user=user, mailing_list=mailing_list)
         return subscription
 
-    def force_subscribe(self, *, user, mailing_list):
+    def force_subscribe(
+        self, *, user, mailing_list: models.MailingList
+    ) -> models.Subscription:
+        """Creates an active subscription skipping any confirmation email."""
         subscription = self._subscribe(user=user, mailing_list=mailing_list)
         self._confirm_subscription(subscription)
         return subscription
 
-    def subscribe(self, *, user, mailing_list, force_confirm=False):
+    def subscribe(
+        self, *, user, mailing_list: models.MailingList, force_confirm=False
+    ) -> models.Subscription:
+        """Creates a subscription and sends the activation email (or just
+        activates it based on settings)"""
         if models.GlobalDeny.objects.filter(user=user).exists():
             return
         subscription = self._subscribe(user=user, mailing_list=mailing_list)
@@ -214,7 +249,8 @@ class SubscriptionService:
             self._confirm_subscription(subscription)
         return subscription
 
-    def confirm_subscription(self, *, token):
+    def confirm_subscription(self, *, token: str) -> models.Subscription:
+        """Activates a subscription"""
         # get subscription
         try:
             subscription = models.Subscription.objects.get(token=token)
@@ -228,7 +264,8 @@ class SubscriptionService:
             subscription=subscription, to_status=SubscriptionStatusEnum.UNSUBSCRIBED
         )
 
-    def unsubscribe(self, *, token):
+    def unsubscribe(self, *, token: str) -> models.Subscription:
+        """Deactivates a subscription"""
         try:
             subscription = models.Subscription.objects.get(token=token)
         except models.Subscription.DoesNotExist:
@@ -238,6 +275,8 @@ class SubscriptionService:
 
 
 class SubmissionService:
+    """Manages send activities for published submissions."""
+
     def _get_included_subscribers(self, submission):
         # get current list of subscribers
         subscriptions = (
@@ -285,7 +324,11 @@ class SubmissionService:
         if not batch_sleep and settings.MAILINGLIST_EMAIL_DELAY is not None:
             time.sleep(settings.MAILINGLIST_EMAIL_DELAY)
 
-    def process_submission(self, submission, *, send_count=0):
+    def process_submission(
+        self, submission: models.Submission, *, send_count: int = 0
+    ) -> int:
+        """Sends submitted message to each (non-excluded) subscriber,
+        observing rate limits configured in settings."""
         submission.status = SubmissionStatusEnum.SENDING
         submission.save()
         subscriptions = self._get_included_subscribers(submission)
@@ -312,18 +355,21 @@ class SubmissionService:
         )
         return list(sending_submissions) + list(published_submissions)
 
-    def process_submissions(self):
+    def process_submissions(self) -> None:
+        """Finds all unsent published ``Submission`` instances and sends them."""
         send_count = 0
         for published_submission in self._get_outstanding_submissions():
             send_count = self.process_submission(
                 published_submission, send_count=send_count
             )
 
-    def publish(self, submission):
+    def publish(self, submission: models.Submission) -> None:
+        """Mark a ``Submission`` for sending."""
         submission.published = now()
         submission.status = SubmissionStatusEnum.PENDING
         submission.save()
 
-    def submit_message(self, message):
+    def submit_message(self, message: models.Message) -> models.Submission:
+        """Creates a ``Submission`` instance for a given ``Message`` instance."""
         submission, _ = models.Submission.objects.get_or_create(message=message)
         return submission
