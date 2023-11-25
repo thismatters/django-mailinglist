@@ -45,8 +45,8 @@ urlpatterns = [
 
 Settings (and their defaults) are outlined below:
 
-* `MAILINGLIST_BASE_URL` : Specify the base url (including protocol! No trailing slash!) for linkbacks to the archive and unsubscribe links.
-* `MAILINGLIST_DEFAULT_SENDER_EMAIL` : The default email address for communication with subscribers.
+* (required) `MAILINGLIST_BASE_URL` : Specify the base url (including protocol! No trailing slash!) for linkbacks to the archive and unsubscribe links.
+* (required) `MAILINGLIST_DEFAULT_SENDER_EMAIL` : The default email address for communication with subscribers.
 * `MAILINGLIST_DEFAULT_SENDER_NAME = "Administrator` : The name or title of the person who will manage subscribers.
 * `MAILINGLIST_USER_MODEL = settings.AUTH_USER_MODEL` : Specify the pool of potential subscribers; this doesn't have to be the same model that you use for authenticating users to your project.
 * `MAILINGLIST_HOOKSET = "mailinglist.hooks.MailinglistDefaultHookset"` : You may provide a class which provides the hooks found in the package module to override certain behaviors (sending email mostly).
@@ -120,9 +120,10 @@ This project is a direct descendant of [`django-newsletter`](https://github.com/
 
 ### Improvements
 
-* Easier configuration: doesn't require installing and configuring additional apps; customized templates are not required.
+* Easier configuration: doesn't require installing and configuring additional apps, customized templates are not required, doesn't require the `sites` framework.
 * More secure: doesn't leak user data in subscribe/unsubscribe flows; allows use of https.
-* More compliant: doesn't store user data within its own models, project must provide a `User`-like model for storing subscriber user data.
+* More private: doesn't store user data within its own models, project must provide a `User`-like model for storing subscriber user data.
+* More compliant: outgoing messages adhere (accurately) to [RFC3269 on email header fields for mailing lists](https://datatracker.ietf.org/doc/html/rfc2369).
 * Implicit send lists: when a message is published, it is sent to all subscribers (at time of processing) except those explicitly excluded from the submission.
 * Send tracking: tracks each sending of a message to a subscriber so that interrupted sending jobs can be resumed.
 * Lower friction user self-management: the unsubscribe link in outgoing message will immediately unsubscribe the recipient.

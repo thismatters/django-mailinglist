@@ -1,7 +1,7 @@
 from django.http import Http404
 from django.urls import reverse
 from django.utils.timezone import now
-from django.views.generic import DetailView, FormView, TemplateView
+from django.views.generic import DetailView, FormView, ListView, TemplateView
 from django.views.generic.detail import (
     SingleObjectMixin,
     SingleObjectTemplateResponseMixin,
@@ -165,6 +165,13 @@ class UnsubscribeView(IsSubscriptionMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         self.subscription = SubscriptionService().unsubscribe(token=kwargs.get("token"))
         return super().get(request, *args, **kwargs)
+
+
+class ArchivesView(ListView):
+    """Allows user to browse messages published on a mailing list."""
+
+    template_name = "mailinglist/web/archive/archives.html"
+    queryset = models.MailingList.objects.filter(visible=True)
 
 
 class ArchiveIndexView(DetailView):

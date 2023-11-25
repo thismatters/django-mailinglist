@@ -11,10 +11,20 @@ from mailinglist import models, services
 from mailinglist.enum import SubmissionStatusEnum, SubscriptionStatusEnum
 
 
-class TestMessageService:
+class TestTemplateSet:
+    @patch("mailinglist.services.select_template")
+    def test_get_template_no_mailing_list(self, p_select_template):
+        ts = services.TemplateSet(mailing_list=None)._get_template()
+        p_select_template.assert_called_once_with(
+            [
+                "mailinglist/email/global-deny/message.txt",
+                "mailinglist/email/message.txt",
+            ]
+        )
+
     @patch("mailinglist.services.select_template")
     def test_get_template(self, p_select_template, mailing_list):
-        services.MessageService()._get_template(mailing_list=mailing_list)
+        services.TemplateSet(mailing_list=mailing_list)._get_template()
         p_select_template.assert_called_once_with(
             [
                 f"mailinglist/email/{mailing_list.slug}/message.txt",
@@ -23,141 +33,220 @@ class TestMessageService:
         )
 
     @patch("mailinglist.services.select_template")
-    def test_get_template_no_mailing_list(self, p_select_template):
-        services.MessageService()._get_template(mailing_list=None)
+    def test_get_template_suffix(self, p_select_template, mailing_list):
+        services.TemplateSet(mailing_list=mailing_list)._get_template(suffix="html")
         p_select_template.assert_called_once_with(
             [
-                "mailinglist/email/global-deny/message.txt",
-                "mailinglist/email/message.txt",
+                f"mailinglist/email/{mailing_list.slug}/message.html",
+                "mailinglist/email/message.html",
             ]
         )
 
-    @patch.object(services.MessageService, "_get_template")
-    def test_prepare(self, p_get_template, subscription):
-        _render = Mock(return_value="  Blah blah Blahh!1! ")
-        p_get_template.return_value = Mock(render=_render)
-        ret = services.MessageService()._prepare(subscription=subscription)
-        p_get_template.assert_called_once_with(
-            mailing_list=subscription.mailing_list, suffix="txt", _for="message"
+    @patch("mailinglist.services.select_template")
+    def test_get_template_action(self, p_select_template, mailing_list):
+        services.TemplateSet(mailing_list=mailing_list)._get_template(_for="subscribe")
+        p_select_template.assert_called_once_with(
+            [
+                f"mailinglist/email/{mailing_list.slug}/subscribe.txt",
+                "mailinglist/email/subscribe.txt",
+            ]
         )
-        _render.assert_called_once_with(
-            {
-                "subscription": subscription,
-                "message": None,
-                "BASE_URL": "http://ilocalhost:8000",
-                "DEFAULT_SENDER_NAME": "Administrator",
-            }
-        )
-        assert "Blah blah Blahh!1!" == ret
 
-    @patch.object(services.MessageService, "_get_template")
-    def test_prepare_no_mailing_list(self, p_get_template, subscription):
-        subscription.mailing_list = None
-        subscription.save()
-        _render = Mock(return_value="  Blah blah Blahh!1! ")
-        p_get_template.return_value = Mock(render=_render)
-        ret = services.MessageService()._prepare(subscription=subscription)
-        p_get_template.assert_called_once_with(
-            mailing_list=None, suffix="txt", _for="message"
+    @patch(
+        "mailinglist.services.TemplateSet._get_default_context",
+        return_value={"omg": "yes"},
+    )
+    def test_render_to_dict(self, mailing_list):
+        ts = services.TemplateSet(mailing_list=mailing_list)
+        mock_template = Mock()
+        mock_template.render.return_value = " ABC123 "
+        ts._templates = {"somekey": mock_template}
+        ret = ts.render_to_dict({"ctx_key": "render_context"})
+        mock_template.render.assert_called_once_with(
+            {"omg": "yes", "ctx_key": "render_context"}
         )
-        _render.assert_called_once_with(
-            {
-                "subscription": subscription,
-                "message": None,
-                "BASE_URL": "http://ilocalhost:8000",
-                "DEFAULT_SENDER_NAME": "Administrator",
-            }
-        )
-        assert "Blah blah Blahh!1!" == ret
+        assert ret["somekey"] == "ABC123"
 
-    @patch.object(services.MessageService, "_get_template")
-    def test_prepare_message(self, p_get_template, subscription, message):
-        subscription.mailing_list = None
-        subscription.save()
-        _render = Mock(return_value="  Blah blah Blahh!1! ")
-        p_get_template.return_value = Mock(render=_render)
-        ret = services.MessageService()._prepare(
-            subscription=subscription, message=message
-        )
-        p_get_template.assert_called_once_with(
-            mailing_list=message.mailing_list, suffix="txt", _for="message"
-        )
-        _render.assert_called_once_with(
-            {
-                "subscription": subscription,
-                "message": message,
-                "BASE_URL": "http://ilocalhost:8000",
-                "DEFAULT_SENDER_NAME": "Administrator",
-            }
-        )
-        assert "Blah blah Blahh!1!" == ret
+    @patch(
+        "mailinglist.services.TemplateSet._get_default_context",
+        return_value={"omg": "yes"},
+    )
+    def test_render_to_dict_key_collision(self, mailing_list):
+        ts = services.TemplateSet(mailing_list=mailing_list)
+        mock_template = Mock()
+        mock_template.render.return_value = " ABC123 "
+        ts._templates = {"somekey": mock_template}
+        ret = ts.render_to_dict({"omg": "render_context"})
+        mock_template.render.assert_called_once_with({"omg": "render_context"})
+        assert ret["somekey"] == "ABC123"
 
-    def test_prepare_message_html_body_no_html(self, message):
-        message.mailing_list.send_html = False
-        message.mailing_list.save()
-        ret = services.MessageService().prepare_message_html_body(
-            message=message, subscription=None
-        )
-        assert ret is None
-
-    @patch.object(services.MessageService, "_prepare")
-    def test_prepare_message_kwargs(self, p_prepare, subscription, message):
-        p_prepare.return_value = "generic return"
-        ret = services.MessageService().prepare_message_kwargs(
-            subscription=subscription, message=message
-        )
-        confirm_url = reverse(
-            "mailinglist:unsubscribe", kwargs={"token": subscription.token}
-        )
+    @patch.object(services.TemplateSet, "_get_template")
+    def test_templates(self, p_get_template, mailing_list):
+        p_get_template.return_value = "generic return"
+        ts = services.TemplateSet(mailing_list=mailing_list)
+        ret = ts.templates
         assert ret == {
             "subject": "generic return",
             "body": "generic return",
             "html_body": "generic return",
-            "attachments": [],
-            "headers": {
-                "List-Unsubscribe": f"{settings.MAILINGLIST_BASE_URL}{confirm_url}"
-            },
         }
-        p_prepare.assert_has_calls(
+        p_get_template.assert_has_calls(
             [
-                call(
-                    message=message, subscription=subscription, _for="message_subject"
-                ),
-                call(message=message, subscription=subscription, suffix="txt"),
-                call(message=message, subscription=subscription, suffix="html"),
+                call(_for="message_subject"),
+                call(_for="message"),
+                call(_for="message", suffix="html"),
             ]
         )
 
-    @patch.object(services.MessageService, "_prepare")
-    def test_prepare_message_kwargs_attachments(
-        self, p_prepare, subscription, message, message_attachment
-    ):
-        p_prepare.return_value = "generic return"
-        ret = services.MessageService().prepare_message_kwargs(
-            subscription=subscription, message=message
-        )
-        assert ret["attachments"] == [message_attachment]
-
-    @patch.object(services.MessageService, "_prepare")
-    def test_prepare_message_kwargs_no_html(
-        self, p_prepare, subscription, message, message_attachment
-    ):
-        message.mailing_list.send_html = False
-        message.mailing_list.save()
-        p_prepare.return_value = "generic return"
-        ret = services.MessageService().prepare_message_kwargs(
-            subscription=subscription, message=message
-        )
-        assert "html_body" not in ret
-        assert p_prepare.call_count == 2
-        p_prepare.assert_has_calls(
+    @patch.object(services.TemplateSet, "_get_template")
+    def test_templates_no_html(self, p_get_template, mailing_list):
+        mailing_list.send_html = False
+        mailing_list.save()
+        p_get_template.return_value = "generic return"
+        ts = services.TemplateSet(mailing_list=mailing_list)
+        ret = ts.templates
+        assert ret == {
+            "subject": "generic return",
+            "body": "generic return",
+        }
+        p_get_template.assert_has_calls(
             [
-                call(
-                    message=message, subscription=subscription, _for="message_subject"
-                ),
-                call(message=message, subscription=subscription, suffix="txt"),
+                call(_for="message_subject"),
+                call(_for="message"),
             ]
         )
+
+    @patch.object(services.TemplateSet, "_get_template")
+    def test_templates_caches(self, p_get_template):
+        ts = services.TemplateSet()
+        ts._templates = {"bypass": True}
+        ret = ts.templates
+        assert ret == {"bypass": True}
+        p_get_template.assert_not_called()
+
+    @override_settings(
+        MAILINGLIST_DEFAULT_SENDER_NAME="Good Name",
+        MAILINGLIST_BASE_URL="https://www.trustworthymailer.lol",
+    )
+    def test_get_default_context(self, mailing_list):
+        ctx = services.TemplateSet(mailing_list=mailing_list)._get_default_context()
+        assert ctx["mailing_list"] is mailing_list
+        assert ctx["BASE_URL"] == "https://www.trustworthymailer.lol"
+        assert ctx["DEFAULT_SENDER_NAME"] == "Good Name"
+
+    @override_settings(
+        MAILINGLIST_DEFAULT_SENDER_NAME="Good Name",
+        MAILINGLIST_BASE_URL="https://www.trustworthymailer.lol",
+    )
+    def test_get_default_context_no_mailing_list(self):
+        ctx = services.TemplateSet()._get_default_context()
+        assert ctx["mailing_list"] is None
+        assert ctx["BASE_URL"] == "https://www.trustworthymailer.lol"
+        assert ctx["DEFAULT_SENDER_NAME"] == "Good Name"
+
+
+class TestMessageService:
+    @patch.object(
+        services.MessageService, "_headers", return_value={"important-header": True}
+    )
+    @patch.object(services.TemplateSet, "render_to_dict")
+    def test_prepare_kwargs(self, p_render, subscription, message):
+        # ts = services.TemplateSet(mailing_list=message.mailing_list)
+        p_render.return_value = {"stuff": True}
+        ret = services.MessageService()._prepare_kwargs(
+            subscription=subscription,
+            message=message,
+            template_set=services.TemplateSet(),
+        )
+        assert ret == {
+            "stuff": True,
+            "to": [subscription.user.email],
+            "headers": {"important-header": True},
+        }
+        p_render.assert_called_once_with(
+            context={"subscription": subscription, "message": message}
+        )
+
+    @patch.object(
+        services.MessageService, "_headers", return_value={"important-header": True}
+    )
+    @patch.object(services.TemplateSet, "render_to_dict")
+    def test_prepare_kwargs_no_message(self, p_render, subscription):
+        # ts = services.TemplateSet(mailing_list=message.mailing_list)
+        p_render.return_value = {"stuff": True}
+        ret = services.MessageService()._prepare_kwargs(
+            subscription=subscription,
+            template_set=services.TemplateSet(),
+        )
+        assert ret == {
+            "stuff": True,
+            "to": [subscription.user.email],
+            "headers": {"important-header": True},
+        }
+        p_render.assert_called_once_with(
+            context={"subscription": subscription, "message": None}
+        )
+
+    def test_headers(self, subscription):
+        ret = services.MessageService()._headers(subscription=subscription)
+        for key in (
+            "List-Help",
+            "List-Unsubscribe",
+            "List-Subscribe",
+            "List-Post",
+            "List-Owner",
+            "List-Archive",
+        ):
+            assert key in ret, f"missing key {key}"
+        for key in (
+            "List-Help",
+            "List-Unsubscribe",
+            "List-Subscribe",
+        ):
+            assert subscription.token in ret[key]
+        assert subscription.mailing_list.slug in ret["List-Archive"]
+
+    def test_headers_no_mailing_list(self, subscription):
+        subscription.mailing_list = None
+        subscription.save()
+        ret = services.MessageService()._headers(subscription=subscription)
+        for key in (
+            "List-Help",
+            "List-Unsubscribe",
+            "List-Subscribe",
+            "List-Post",
+            "List-Owner",
+            "List-Archive",
+        ):
+            assert key in ret, f"missing key {key}"
+        for key in (
+            "List-Help",
+            "List-Unsubscribe",
+            "List-Subscribe",
+        ):
+            assert subscription.token in ret[key]
+        assert ret["List-Archive"].endswith("mailinglist/archive/>")
+        assert "," not in ret["List-Owner"]
+
+    @patch.object(services.MessageService, "_prepare_kwargs")
+    def test_prepare_message_kwargs(self, p_prepare):
+        p_prepare.return_value = "generic return"
+        ret = services.MessageService().prepare_message_kwargs(
+            subscription=True, message=False, template_set=None
+        )
+        p_prepare.assert_called_once_with(
+            subscription=True, message=False, template_set=None
+        )
+        assert ret == "generic return"
+
+    @patch.object(services.MessageService, "_prepare_kwargs")
+    def test_prepare_confirmation_kwargs(self, p_prepare):
+        p_prepare.return_value = "generic return"
+        ret = services.MessageService().prepare_confirmation_kwargs(
+            subscription=True, template_set=None
+        )
+        p_prepare.assert_called_once_with(subscription=True, template_set=None)
+        assert ret == "generic return"
 
 
 class TestSubmissionService:
@@ -303,6 +392,51 @@ class TestSubmissionService:
 
     @patch.object(services.SubmissionService, "_rate_limit")
     @patch.object(services.SubmissionService, "_ensure_sent")
+    def test_process_submission_attachments(
+        self,
+        p_ensure_sent,
+        p_rate_limit,
+        submission,
+        active_subscription,
+        message_attachment,
+    ):
+        submission.status = SubmissionStatusEnum.PENDING
+        submission.save()
+        p_ensure_sent.return_value = True
+        _send_count = services.SubmissionService().process_submission(submission)
+        p_ensure_sent.assert_called_once()
+        assert p_ensure_sent.call_args.kwargs["attachments"] == [message_attachment]
+        p_rate_limit.assert_called_once_with(1)
+        submission.refresh_from_db()
+        assert submission.status == SubmissionStatusEnum.SENT
+        assert _send_count == 1
+
+    @patch.object(services.SubmissionService, "_rate_limit")
+    @patch.object(services.SubmissionService, "_ensure_sent")
+    def test_process_submission_template_set(
+        self,
+        p_ensure_sent,
+        p_rate_limit,
+        submission,
+        active_subscription,
+        message_attachment,
+    ):
+        submission.status = SubmissionStatusEnum.PENDING
+        submission.save()
+        p_ensure_sent.return_value = True
+        _send_count = services.SubmissionService().process_submission(submission)
+        p_ensure_sent.assert_called_once()
+        assert (
+            p_ensure_sent.call_args.kwargs["template_set"].mailing_list
+            == submission.message.mailing_list
+        )
+        p_rate_limit.assert_called_once_with(1)
+        submission.refresh_from_db()
+        assert submission.status == SubmissionStatusEnum.SENT
+        assert _send_count == 1
+
+    @patch.object(services.SubmissionService, "_rate_limit")
+    @patch.object(services.SubmissionService, "_ensure_sent")
     def test_process_submission(
         self, p_ensure_sent, p_rate_limit, submission, active_subscription
     ):
@@ -310,9 +444,7 @@ class TestSubmissionService:
         submission.save()
         p_ensure_sent.return_value = True
         _send_count = services.SubmissionService().process_submission(submission)
-        p_ensure_sent.assert_called_once_with(
-            submission=submission, subscription=active_subscription
-        )
+        p_ensure_sent.assert_called_once()
         p_rate_limit.assert_called_once_with(1)
         submission.refresh_from_db()
         assert submission.status == SubmissionStatusEnum.SENT
@@ -329,9 +461,7 @@ class TestSubmissionService:
         _send_count = services.SubmissionService().process_submission(
             submission, send_count=2
         )
-        p_ensure_sent.assert_called_once_with(
-            submission=submission, subscription=active_subscription
-        )
+        p_ensure_sent.assert_called_once()
         p_rate_limit.assert_called_once_with(3)
         submission.refresh_from_db()
         assert submission.status == SubmissionStatusEnum.SENT
@@ -346,9 +476,7 @@ class TestSubmissionService:
         submission.save()
         p_ensure_sent.return_value = False
         _send_count = services.SubmissionService().process_submission(submission)
-        p_ensure_sent.assert_called_once_with(
-            submission=submission, subscription=active_subscription
-        )
+        p_ensure_sent.assert_called_once()
         p_rate_limit.assert_not_called()
         submission.refresh_from_db()
         assert submission.status == SubmissionStatusEnum.SENT
@@ -407,11 +535,31 @@ class TestSubmissionService:
         self, p_send_message, p_prepare_message_kwargs, message, subscription
     ):
         p_prepare_message_kwargs.return_value = {"stuff": "yeah"}
-        services.SubmissionService()._send_message(message, subscription)
+        services.SubmissionService()._send_message(
+            message=message, subscription=subscription, template_set=None
+        )
+        p_prepare_message_kwargs.assert_called_once_with(
+            message=message, subscription=subscription, template_set=None
+        )
         p_send_message.assert_called_once_with(
-            to=[subscription.user.email],
             from_email=subscription.mailing_list.sender_tag,
             stuff="yeah",
+        )
+
+    @patch.object(services.MessageService, "prepare_message_kwargs")
+    @patch.object(services.hookset, "send_message")
+    def test_send_message_extra_kwargs(
+        self, p_send_message, p_prepare_message_kwargs, message, subscription
+    ):
+        p_prepare_message_kwargs.return_value = {"stuff": "yeah"}
+        services.SubmissionService()._send_message(
+            message=message, subscription=subscription, template_set=None, more=True
+        )
+        p_prepare_message_kwargs.assert_called_once_with(
+            message=message, subscription=subscription, template_set=None
+        )
+        p_send_message.assert_called_once_with(
+            from_email=subscription.mailing_list.sender_tag, stuff="yeah", more=True
         )
 
 

@@ -1,6 +1,5 @@
 from mailinglist.services import SubmissionService
 
-
 try:
     from celery import shared_task
 except ImportError:

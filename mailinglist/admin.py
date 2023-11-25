@@ -258,15 +258,13 @@ class MessageAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
     @xframe_options_sameorigin
     def preview_html(self, request, object_id):
         message = self._getobj(request, object_id)
-        html_body = MessageService().prepare_message_html_body(
-            message=message, subscription=None
-        )
+        html_body = MessageService().prepare_message_preview_html(message=message)
         return HttpResponse(html_body)
 
     @xframe_options_sameorigin
     def preview_text(self, request, object_id):
         message = self._getobj(request, object_id)
-        body = MessageService().prepare_message_body(message=message, subscription=None)
+        body = MessageService().prepare_message_preview(message=message)
         return HttpResponse(body, content_type="text/plain")
 
     def submit(self, request, object_id):

@@ -1,0 +1,6 @@
+<h1>All Mailing List Archives</h1>
+<ul>
+{% for mailing_list in object_list %}
+    <li><a href="{% url 'mailinglist:archive_index' mailing_list.slug  %}">{{mailing_list.name}}</a></li>
+{% endfor %}
+</ul>

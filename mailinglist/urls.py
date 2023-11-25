@@ -44,6 +44,11 @@ urlpatterns = [
         name="unsubscribe",
     ),
     path(
+        "archive/",
+        views.ArchivesView.as_view(),
+        name="archives",
+    ),
+    path(
         "archive/<slug:mailing_list_slug>/",
         views.ArchiveIndexView.as_view(),
         name="archive_index",

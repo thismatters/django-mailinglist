@@ -12,14 +12,41 @@ from mailinglist.conf import hookset
 from mailinglist.enum import SubmissionStatusEnum, SubscriptionStatusEnum
 
 
-class MessageService:
-    """Composes email for sending"""
+class TemplateSet:
+    """Represents the templates needed for generating outgoing email."""
 
-    def _get_template(self, *, mailing_list, suffix="txt", _for="message"):
+    def __init__(
+        self, *, mailing_list: models.MailingList = None, action: str = "message"
+    ):
+        self.mailing_list = mailing_list
+        self.action = action
+        self._templates = None
+
+    @property
+    def templates(self):
+        if self._templates is not None:
+            return self._templates
+        self._templates = {}
+        self._templates["subject"] = self._get_template(_for=f"{self.action}_subject")
+        self._templates["body"] = self._get_template(_for=self.action)
+        if self.mailing_list is None or self.mailing_list.send_html:
+            self._templates["html_body"] = self._get_template(
+                _for=self.action, suffix="html"
+            )
+        return self._templates
+
+    def _get_default_context(self):
+        return {
+            "mailing_list": self.mailing_list,
+            "BASE_URL": settings.MAILINGLIST_BASE_URL,
+            "DEFAULT_SENDER_NAME": settings.MAILINGLIST_DEFAULT_SENDER_NAME,
+        }
+
+    def _get_template(self, *, suffix="txt", _for="message"):
         _root = "mailinglist/email"
         slug = "global-deny"
-        if mailing_list is not None:
-            slug = mailing_list.slug
+        if self.mailing_list is not None:
+            slug = self.mailing_list.slug
         return select_template(
             [
                 f"{_root}/{slug}/{_for}.{suffix}",
@@ -27,119 +54,124 @@ class MessageService:
             ]
         )
 
-    def _prepare(self, *, subscription, message=None, suffix="txt", _for="message"):
-        if message is not None:
-            mailing_list = message.mailing_list
-        else:
-            mailing_list = subscription.mailing_list
+    def render_to_dict(self, context: dict) -> dict[str, str]:
+        """Renders each template in the set and arranges the text into a
+        dictionary, requires the context for the specific message and
+        subscription"""
 
-        template = self._get_template(
-            mailing_list=mailing_list, suffix=suffix, _for=_for
-        )
-        context = {
-            "subscription": subscription,
-            "message": message,
-            "BASE_URL": settings.MAILINGLIST_BASE_URL,
-            "DEFAULT_SENDER_NAME": settings.MAILINGLIST_DEFAULT_SENDER_NAME,
-        }
-        return template.render(context).strip()
+        rendered = {}
+        _context = self._get_default_context()
+        _context.update(context)
+        for attr, template in self.templates.items():
+            rendered[attr] = template.render(_context).strip()
+        return rendered
+
+
+class MessageService:
+    """Composes email for sending"""
+
+    def _urlify(self, path):
+        return f"<{settings.MAILINGLIST_BASE_URL}{path}>"
+
+    def _mailto(self, mailing_list, subject=None, appended=True):
+        if mailing_list is None:
+            return ""
+        if subject is None:
+            subject = mailing_list.slug
+        buffer = ""
+        if appended:
+            buffer += ","
+
+        buffer += f"<mailto: {mailing_list.email}?subject={subject}>"
+        return buffer
 
     def _headers(self, *, subscription):
+        """Provides necessary headers with correct formatting for good
+        adherence to RFC2369.
+
+        Reference
+        ^^^^^^^^^
+        https://datatracker.ietf.org/doc/html/rfc2369
+        """
+        _list = subscription.mailing_list
+        _help_path = reverse(
+            "mailinglist:subscriptions", kwargs={"token": subscription.token}
+        )
         _unsubscribe_path = reverse(
             "mailinglist:unsubscribe", kwargs={"token": subscription.token}
         )
-        return {
-            "List-Unsubscribe": f"{settings.MAILINGLIST_BASE_URL}{_unsubscribe_path}"
-        }
-
-    def prepare_message_subject(
-        self, *, message: models.Message, subscription: models.Subscription
-    ) -> str:
-        """Compose the subject line for an outgoing message"""
-        return self._prepare(
-            message=message,
-            subscription=subscription,
-            _for="message_subject",
+        _subscribe_path = reverse(
+            "mailinglist:subscribe_confirm", kwargs={"token": subscription.token}
         )
-
-    def prepare_message_body(
-        self, *, message: models.Message, subscription: models.Subscription
-    ) -> str:
-        """Compose the body for an outgoing message"""
-        return self._prepare(
-            message=message,
-            subscription=subscription,
-            suffix="txt",
-        )
-
-    def prepare_message_html_body(
-        self, *, message: models.Message, subscription: models.Subscription
-    ) -> str:
-        """Compose the body (in html) for an outgoing message"""
-        if not message.mailing_list.send_html:
-            return None
-        return self._prepare(
-            message=message,
-            subscription=subscription,
-            suffix="html",
-        )
-
-    def prepare_message_kwargs(
-        self, *, message: models.Message, subscription: models.Subscription
-    ) -> dict[str, str]:
-        """Composes and structures outgoing message data for email sending"""
-        _kwargs = {
-            "subject": self.prepare_message_subject(
-                message=message, subscription=subscription
-            ),
-            "body": self.prepare_message_body(
-                message=message, subscription=subscription
-            ),
-            # TODO: move this message enrichment elsewhere
-            "headers": self._headers(subscription=subscription),
-            "attachments": list(message.attachments.all()),
-        }
-        if message.mailing_list.send_html:
-            _kwargs.update(
-                {
-                    "html_body": self.prepare_message_html_body(
-                        message=message, subscription=subscription
-                    )
-                }
+        if subscription.mailing_list is None:
+            _archive_path = reverse("mailinglist:archives")
+        else:
+            _archive_path = reverse(
+                "mailinglist:archive_index", kwargs={"mailing_list_slug": _list.slug}
             )
+        return {
+            "List-Help": self._urlify(_help_path) + self._mailto(_list, subject="help"),
+            "List-Unsubscribe": self._urlify(_unsubscribe_path)
+            + self._mailto(_list, subject="unsubscribe"),
+            "List-Subscribe": self._urlify(_subscribe_path),
+            "List-Post": "NO",
+            "List-Owner": self._mailto(_list, appended=False),
+            "List-Archive": self._urlify(_archive_path),
+        }
+
+    def _prepare_kwargs(
+        self,
+        *,
+        subscription: models.Subscription,
+        template_set: TemplateSet,
+        message: models.Message = None,
+    ) -> dict:
+        _kwargs = template_set.render_to_dict(
+            context={"subscription": subscription, "message": message}
+        )
+        _kwargs.update(
+            {
+                "to": [subscription.user.email],
+                "headers": self._headers(subscription=subscription),
+            }
+        )
         return _kwargs
 
-    def prepare_confirmation_subject(self, *, subscription: models.Subscription) -> str:
-        """Compose the subject line for an outgoing confirmation email"""
-        return self._prepare(
+    def prepare_message_kwargs(
+        self,
+        *,
+        subscription: models.Subscription,
+        template_set: TemplateSet,
+        message: models.Message,
+    ) -> dict:
+        """Composes and structures outgoing message data for email sending"""
+        return self._prepare_kwargs(
+            message=message,
             subscription=subscription,
-            _for="subscribe_subject",
+            template_set=template_set,
         )
 
-    def prepare_confirmation_body(self, *, subscription: models.Subscription) -> str:
-        """Compose the body for an outgoing confirmation email"""
-        return self._prepare(
-            subscription=subscription,
-            _for="subscribe",
-        )
-
-    def prepare_confirmation_html_body(
-        self, *, subscription: models.Subscription
-    ) -> str:
-        """Compose the body (in html) for an outgoing confirmation email"""
-        return self._prepare(
-            subscription=subscription,
-            suffix="html",
-            _for="subscribe",
-        )
-
-    def prepare_confirmation_kwargs(self, *, subscription: models.Subscription):
+    def prepare_confirmation_kwargs(
+        self, *, subscription: models.Subscription, template_set: TemplateSet
+    ):
         """Composes and structures outgoing message data for confirmation email"""
-        return {
-            "subject": self.prepare_confirmation_subject(subscription=subscription),
-            "body": self.prepare_confirmation_body(subscription=subscription),
-            "html_body": self.prepare_confirmation_html_body(subscription=subscription),
-        }
+        return self._prepare_kwargs(
+            subscription=subscription,
+            template_set=template_set,
+        )
+
+    def _prepare_preview(self, *, message):
+        template_set = TemplateSet(mailing_list=message.mailing_list)
+        rendered = template_set.render_to_dict(
+            context={"subscription": None, "message": message}
+        )
+        return rendered
+
+    def prepare_message_preview(self, *, message):
+        return self._prepare_preview(message=message)["body"]
+
+    def prepare_message_preview_html(self, *, message):
+        return self._prepare_preview(message=message).get("html_body", None)
 
 
 class SubscriptionService:
@@ -199,9 +231,14 @@ class SubscriptionService:
         if subscription.mailing_list is not None:
             sender = subscription.mailing_list.sender_tag
         hookset.send_message(
-            to=[subscription.user.email],
             from_email=sender,
-            **MessageService().prepare_confirmation_kwargs(subscription=subscription),
+            **MessageService().prepare_confirmation_kwargs(
+                subscription=subscription,
+                template_set=TemplateSet(
+                    mailing_list=subscription.mailing_list,
+                    action="subscribe",
+                ),
+            ),
         )
 
     # Type hints get bothersome for this dynamic user model...
@@ -290,29 +327,31 @@ class SubmissionService:
         )
         return subscriptions
 
-    def _send_message(self, message, subscription):
+    def _send_message(self, *, message, subscription, template_set, **kwargs):
         hookset.send_message(
-            to=[subscription.user.email],
             from_email=subscription.mailing_list.sender_tag,
             **MessageService().prepare_message_kwargs(
-                message=message, subscription=subscription
+                message=message, subscription=subscription, template_set=template_set
             ),
+            **kwargs,
         )
 
-    def _ensure_sent(self, *, subscription, submission):
+    def _ensure_sent(self, *, subscription, submission, **kwargs):
         """Idempotent sending of message, returns ``True`` if email was
         actually sent (returns ``False`` if email was sent previously)."""
         # check if this has been sent already
-        kwargs = {
+        sending_kwargs = {
             "submission": submission,
             "subscription": subscription,
         }
-        if models.Sending.objects.filter(**kwargs).exists():
+        if models.Sending.objects.filter(**sending_kwargs).exists():
             return False
         # send email
-        self._send_message(message=submission.message, subscription=subscription)
+        self._send_message(
+            message=submission.message, subscription=subscription, **kwargs
+        )
         # log sending of email
-        models.Sending.objects.create(**kwargs)
+        models.Sending.objects.create(**sending_kwargs)
         return True
 
     def _rate_limit(self, total_send_count):
@@ -332,9 +371,14 @@ class SubmissionService:
         submission.status = SubmissionStatusEnum.SENDING
         submission.save()
         subscriptions = self._get_included_subscribers(submission)
+        template_set = TemplateSet(mailing_list=submission.message.mailing_list)
+        attachments = list(submission.message.attachments.all())
         for subscription in subscriptions:
             did_send = self._ensure_sent(
-                submission=submission, subscription=subscription
+                submission=submission,
+                subscription=subscription,
+                template_set=template_set,
+                attachments=attachments,
             )
             if not did_send:
                 continue
