@@ -18,7 +18,7 @@ pip install django-mailinglist
 
 ## Configuration
 
-Then add `mailinglist` and to the `INSTALLED_APPS` list And create settings for `MAILINGLIST_BASE_URL` AND `MAILINGLIST_DEFAULT_SENDER_EMAIL`:
+Add `mailinglist` to the `INSTALLED_APPS` list and create settings for `MAILINGLIST_BASE_URL` and `MAILINGLIST_DEFAULT_SENDER_EMAIL`:
 
 ```
 INSTALLED_APPS = [
@@ -51,7 +51,7 @@ Settings (and their defaults) are outlined below:
 * `MAILINGLIST_USER_MODEL = settings.AUTH_USER_MODEL` : Specify the pool of potential subscribers; this doesn't have to be the same model that you use for authenticating users to your project.
 * `MAILINGLIST_HOOKSET = "mailinglist.hooks.MailinglistDefaultHookset"` : You may provide a class which provides the hooks found in the package module to override certain behaviors (sending email mostly).
 * `MAILINGLIST_CONFIRM_EMAIL_SUBSCRIBE = True` : Should new subscribers be sent an email to verify their email address?
-* `MAILINGLIST_EMAIL_DELAY = None` : Amount of seconds to wait between sending an individual email.
+* `MAILINGLIST_EMAIL_DELAY = 0.1` : Amount of seconds to wait between sending an individual email.
 * `MAILINGLIST_BATCH_SIZE = 200` : The number of individual email which constitute a "batch".
 * `MAILINGLIST_BATCH_DELAY = 10` : Amount of seconds to wait after completing a "batch".
 
@@ -120,7 +120,7 @@ This project is a direct descendant of [`django-newsletter`](https://github.com/
 
 ### Improvements
 
-* Easier configuration: doesn't require installing and configuring additional apps.
+* Easier configuration: doesn't require installing and configuring additional apps; customized templates are not required.
 * More secure: doesn't leak user data in subscribe/unsubscribe flows; allows use of https.
 * More compliant: doesn't store user data within its own models, project must provide a `User`-like model for storing subscriber user data.
 * Implicit send lists: when a message is published, it is sent to all subscribers (at time of processing) except those explicitly excluded from the submission.

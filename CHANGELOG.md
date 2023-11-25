@@ -12,8 +12,13 @@ Changes to this project will be documented in this file.
 ### Added
 - `MessageAttachment` model and machinery to manage and send attachments.
 - `List-Unsubscribe` header to outgoing messages.
+- Lots of documentation!
+- Contents to `message_subject.txt` template.
+- Management command, celery tasks for processing published submissions.
 ### Changed
 - More fiddling with the badges
+### Removed
+- `Message.subject`
 
 ## [0.1.2]
 ### Changed

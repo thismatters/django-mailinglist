@@ -10,10 +10,6 @@ def test_message_string(message):
     assert str(message) == message.title
 
 
-def test_message_subject(message):
-    assert message.subject == f"[{message.mailing_list}] {message.title}"
-
-
 def test_message_part_html(message_part):
     assert "<h1>This should render gloriously!</h1>" in message_part.html_text
     assert "<em>verbosely</em>" in message_part.html_text

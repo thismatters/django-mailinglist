@@ -228,9 +228,10 @@ class MessagePartInline(admin.StackedInline):
     extra = 2
 
 
-class AttachmentInline(UnchangingAdminMixin, admin.TabularInline):
+class MessageAttachmentInline(UnchangingAdminMixin, admin.TabularInline):
     model = models.MessageAttachment
     extra = 1
+    fields = ("file",)
 
 
 @admin.register(models.Message)
@@ -238,7 +239,7 @@ class MessageAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
     model = models.Message
     prepopulated_fields = {"slug": ("title",)}
     list_display = ("title", "slug", "mailing_list", "created")
-    inlines = (MessagePartInline, AttachmentInline)
+    inlines = (MessagePartInline, MessageAttachmentInline)
 
     """ Views """
 

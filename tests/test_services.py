@@ -92,6 +92,14 @@ class TestMessageService:
         )
         assert "Blah blah Blahh!1!" == ret
 
+    def test_prepare_message_html_body_no_html(self, message):
+        message.mailing_list.send_html = False
+        message.mailing_list.save()
+        ret = services.MessageService().prepare_message_html_body(
+            message=message, subscription=None
+        )
+        assert ret is None
+
     @patch.object(services.MessageService, "_prepare")
     def test_prepare_message_kwargs(self, p_prepare, subscription, message):
         p_prepare.return_value = "generic return"
