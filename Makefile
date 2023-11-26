@@ -12,3 +12,6 @@ lint:
 	cd mailinglist && pflake8
 test:
 	pytest --cov=mailinglist --cov-report term-missing tests/$(TEST_PATH)
+uml-diagram:
+	cd test_project && python manage.py graph_models --pygraphviz -o models.png
+	mv test_project/models.png docs/source/_static/models.png
