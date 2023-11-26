@@ -10,6 +10,10 @@ Django Mailinglist
 
 `django-mailinglist` is a package for administering outgoing mailing lists to subscribers. This package aims to replace `django-newsletter` and takes inspiration (and a non-trivial amount of code) from it.
 
+## Documentation
+
+[Please refer to the full documentation](https://django-mailinglist.readthedocs.io/en/latest/).
+
 ## Installation
 
 Use pip to install the package
