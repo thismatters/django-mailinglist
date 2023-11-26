@@ -5,6 +5,8 @@ Django Mailinglist
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/django-mailinglist?color=156741&logo=python&logoColor=white&style=for-the-badge)](https://pypi.org/project/django-mailinglist/)
 [![PyPI - Django Version](https://img.shields.io/pypi/djversions/django-mailinglist?color=156741&logo=django&logoColor=ffffff&style=for-the-badge)](https://pypi.org/project/django-mailinglist/)
 [![Codecov](https://img.shields.io/codecov/c/github/thismatters/django-mailinglist?color=156741&logo=codecov&logoColor=ffffff&style=for-the-badge)](https://codecov.io/gh/thismatters/django-mailinglist)
+[![Read the Docs](https://img.shields.io/readthedocs/django-mailinglist?color=156741&logo=readthedocs&logoColor=ffffff&style=for-the-badge)](https://django-mailinglist.readthedocs.io/en/latest/)
+
 
 `django-mailinglist` is a package for administering outgoing mailing lists to subscribers. This package aims to replace `django-newsletter` and takes inspiration (and a non-trivial amount of code) from it.
 
