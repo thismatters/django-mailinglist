@@ -211,14 +211,16 @@ class SubscriptionAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
         return my_urls + urls
 
 
+class UnchangingAdminMixin:
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(models.GlobalDeny)
-class GlobalDenyAdmin(admin.ModelAdmin):
+class GlobalDenyAdmin(UnchangingAdminMixin, admin.ModelAdmin):
     model = models.GlobalDeny
     list_display = ("pk", "user", "created")
     date_hierarchy = "created"
-
-    def has_change_permission(self, request, obj=None):
-        return False
 
 
 class MessagePartInline(admin.StackedInline):
@@ -226,12 +228,18 @@ class MessagePartInline(admin.StackedInline):
     extra = 2
 
 
+class MessageAttachmentInline(UnchangingAdminMixin, admin.TabularInline):
+    model = models.MessageAttachment
+    extra = 1
+    fields = ("file",)
+
+
 @admin.register(models.Message)
 class MessageAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
     model = models.Message
     prepopulated_fields = {"slug": ("title",)}
     list_display = ("title", "slug", "mailing_list", "created")
-    inlines = (MessagePartInline,)
+    inlines = (MessagePartInline, MessageAttachmentInline)
 
     """ Views """
 
@@ -241,22 +249,22 @@ class MessageAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
             "admin/mailinglist/preview.html",
             {
                 "message": self._getobj(request, object_id),
-                # "attachments": Attachment.objects.filter(message_id=object_id),
+                "attachments": models.MessageAttachment.objects.filter(
+                    message_id=object_id
+                ),
             },
         )
 
     @xframe_options_sameorigin
     def preview_html(self, request, object_id):
         message = self._getobj(request, object_id)
-        html_body = MessageService().prepare_message_html_body(
-            message=message, subscription=None
-        )
+        html_body = MessageService().prepare_message_preview_html(message=message)
         return HttpResponse(html_body)
 
     @xframe_options_sameorigin
     def preview_text(self, request, object_id):
         message = self._getobj(request, object_id)
-        body = MessageService().prepare_message_body(message=message, subscription=None)
+        body = MessageService().prepare_message_preview(message=message)
         return HttpResponse(body, content_type="text/plain")
 
     def submit(self, request, object_id):

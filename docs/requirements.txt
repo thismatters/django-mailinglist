@@ -1,0 +1,6 @@
+Django==4.2.7
+
+# requirements for the package... in case its dependencies aren't installed otherwise
+django-appconf>=1.0.0
+django-enumfield>=3.0
+Markdown>=3.3.0

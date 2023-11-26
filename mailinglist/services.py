@@ -1,21 +1,52 @@
 import time
 from random import randint
 
+from django.conf import settings
 from django.template.loader import select_template
+from django.urls import reverse
 from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 
 from mailinglist import models
-from mailinglist.conf import hookset, settings
+from mailinglist.conf import hookset
 from mailinglist.enum import SubmissionStatusEnum, SubscriptionStatusEnum
 
 
-class MessageService:
-    def _get_template(self, *, mailing_list, suffix="txt", _for="message"):
+class TemplateSet:
+    """Represents the templates needed for generating outgoing email."""
+
+    def __init__(
+        self, *, mailing_list: models.MailingList = None, action: str = "message"
+    ):
+        self.mailing_list = mailing_list
+        self.action = action
+        self._templates = None
+
+    @property
+    def templates(self):
+        if self._templates is not None:
+            return self._templates
+        self._templates = {}
+        self._templates["subject"] = self._get_template(_for=f"{self.action}_subject")
+        self._templates["body"] = self._get_template(_for=self.action)
+        if self.mailing_list is None or self.mailing_list.send_html:
+            self._templates["html_body"] = self._get_template(
+                _for=self.action, suffix="html"
+            )
+        return self._templates
+
+    def _get_default_context(self):
+        return {
+            "mailing_list": self.mailing_list,
+            "BASE_URL": settings.MAILINGLIST_BASE_URL,
+            "DEFAULT_SENDER_NAME": settings.MAILINGLIST_DEFAULT_SENDER_NAME,
+        }
+
+    def _get_template(self, *, suffix="txt", _for="message"):
         _root = "mailinglist/email"
         slug = "global-deny"
-        if mailing_list is not None:
-            slug = mailing_list.slug
+        if self.mailing_list is not None:
+            slug = self.mailing_list.slug
         return select_template(
             [
                 f"{_root}/{slug}/{_for}.{suffix}",
@@ -23,92 +54,135 @@ class MessageService:
             ]
         )
 
-    def _prepare(self, *, subscription, message=None, suffix="txt", _for="message"):
-        if message is not None:
-            mailing_list = message.mailing_list
+    def render_to_dict(self, context: dict):  # -> dict[str, str]:
+        """Renders each template in the set and arranges the text into a
+        dictionary, requires the context for the specific message and
+        subscription"""
+
+        rendered = {}
+        _context = self._get_default_context()
+        _context.update(context)
+        for attr, template in self.templates.items():
+            rendered[attr] = template.render(_context).strip()
+        return rendered
+
+
+class MessageService:
+    """Composes email for sending"""
+
+    def _urlify(self, path):
+        return f"<{settings.MAILINGLIST_BASE_URL}{path}>"
+
+    def _mailto(self, mailing_list, subject=None, appended=True):
+        if mailing_list is None:
+            return ""
+        if subject is None:
+            subject = mailing_list.slug
+        buffer = ""
+        if appended:
+            buffer += ","
+
+        buffer += f"<mailto: {mailing_list.email}?subject={subject}>"
+        return buffer
+
+    def _headers(self, *, subscription):
+        """Provides necessary headers with correct formatting for good
+        adherence to RFC2369.
+
+        Reference
+        ^^^^^^^^^
+        https://datatracker.ietf.org/doc/html/rfc2369
+        """
+        _list = subscription.mailing_list
+        _help_path = reverse(
+            "mailinglist:subscriptions", kwargs={"token": subscription.token}
+        )
+        _unsubscribe_path = reverse(
+            "mailinglist:unsubscribe", kwargs={"token": subscription.token}
+        )
+        _subscribe_path = reverse(
+            "mailinglist:subscribe_confirm", kwargs={"token": subscription.token}
+        )
+        if subscription.mailing_list is None:
+            _archive_path = reverse("mailinglist:archives")
         else:
-            mailing_list = subscription.mailing_list
-
-        template = self._get_template(
-            mailing_list=mailing_list, suffix=suffix, _for=_for
-        )
-        context = {
-            "subscription": subscription,
-            "message": message,
-            "BASE_URL": settings.MAILINGLIST_BASE_URL,
-            "DEFAULT_SENDER_NAME": settings.MAILINGLIST_DEFAULT_SENDER_NAME,
-        }
-        return template.render(context).strip()
-
-    def prepare_message_subject(self, *, message, subscription):
-        return self._prepare(
-            message=message,
-            subscription=subscription,
-            _for="message_subject",
-        )
-
-    def prepare_message_body(self, *, message, subscription):
-        return self._prepare(
-            message=message,
-            subscription=subscription,
-            suffix="txt",
-        )
-
-    def prepare_message_html_body(self, *, message, subscription):
-        return self._prepare(
-            message=message,
-            subscription=subscription,
-            suffix="html",
-        )
-
-    def prepare_message_kwargs(self, *, message, subscription):
+            _archive_path = reverse(
+                "mailinglist:archive_index", kwargs={"mailing_list_slug": _list.slug}
+            )
         return {
-            "subject": self.prepare_message_subject(
-                message=message, subscription=subscription
-            ),
-            "body": self.prepare_message_body(
-                message=message, subscription=subscription
-            ),
-            "html_body": self.prepare_message_html_body(
-                message=message, subscription=subscription
-            ),
+            "List-Help": self._urlify(_help_path) + self._mailto(_list, subject="help"),
+            "List-Unsubscribe": self._urlify(_unsubscribe_path)
+            + self._mailto(_list, subject="unsubscribe"),
+            "List-Subscribe": self._urlify(_subscribe_path),
+            "List-Post": "NO",
+            "List-Owner": self._mailto(_list, appended=False),
+            "List-Archive": self._urlify(_archive_path),
         }
 
-    def prepare_confirmation_subject(self, *, subscription):
-        return self._prepare(
+    def _prepare_kwargs(
+        self,
+        *,
+        subscription: models.Subscription,
+        template_set: TemplateSet,
+        message: models.Message = None,
+    ):  # -> dict:
+        _kwargs = template_set.render_to_dict(
+            context={"subscription": subscription, "message": message}
+        )
+        _kwargs.update(
+            {
+                "to": [subscription.user.email],
+                "headers": self._headers(subscription=subscription),
+            }
+        )
+        return _kwargs
+
+    def prepare_message_kwargs(
+        self,
+        *,
+        subscription: models.Subscription,
+        template_set: TemplateSet,
+        message: models.Message,
+    ):  # -> dict:
+        """Composes and structures outgoing message data for email sending"""
+        return self._prepare_kwargs(
+            message=message,
             subscription=subscription,
-            _for="subscribe_subject",
+            template_set=template_set,
         )
 
-    def prepare_confirmation_body(self, *, subscription):
-        return self._prepare(
+    def prepare_confirmation_kwargs(
+        self, *, subscription: models.Subscription, template_set: TemplateSet
+    ):
+        """Composes and structures outgoing message data for confirmation email"""
+        return self._prepare_kwargs(
             subscription=subscription,
-            _for="subscribe",
+            template_set=template_set,
         )
 
-    def prepare_confirmation_html_body(self, *, subscription):
-        return self._prepare(
-            subscription=subscription,
-            suffix="html",
-            _for="subscribe",
+    def _prepare_preview(self, *, message):
+        template_set = TemplateSet(mailing_list=message.mailing_list)
+        rendered = template_set.render_to_dict(
+            context={"subscription": None, "message": message}
         )
+        return rendered
 
-    def prepare_confirmation_kwargs(self, *, subscription):
-        return {
-            "subject": self.prepare_confirmation_subject(subscription=subscription),
-            "body": self.prepare_confirmation_body(subscription=subscription),
-            "html_body": self.prepare_confirmation_html_body(subscription=subscription),
-        }
+    def prepare_message_preview(self, *, message):
+        return self._prepare_preview(message=message)["body"]
+
+    def prepare_message_preview_html(self, *, message):
+        return self._prepare_preview(message=message).get("html_body", None)
 
 
 class SubscriptionService:
+    """Manages all subscription and unsubscribe events."""
+
     def _random_string(self, length):
         return get_random_string(
             length=length, allowed_chars="abcdefghijklmnopqrstuvwxyz0123456789-"
         )
 
     def _generate_token(self, *, user, mailing_list):
-        # TODO: this might go into the hookset
         _s = randint(0, len(user.email) - 1)
         _hash = str(hash(f"{user.email[0:_s]}{mailing_list}{user.email[_s:0]}"))
         _prefix = self._random_string(length=45 - len(_hash))
@@ -156,12 +230,20 @@ class SubscriptionService:
         if subscription.mailing_list is not None:
             sender = subscription.mailing_list.sender_tag
         hookset.send_message(
-            to=[subscription.user.email],
             from_email=sender,
-            **MessageService().prepare_confirmation_kwargs(subscription=subscription),
+            **MessageService().prepare_confirmation_kwargs(
+                subscription=subscription,
+                template_set=TemplateSet(
+                    mailing_list=subscription.mailing_list,
+                    action="subscribe",
+                ),
+            ),
         )
 
-    def create_user(self, *, email, first_name, last_name):
+    # Type hints get bothersome for this dynamic user model...
+    def create_user(self, *, email: str, first_name: str, last_name: str):
+        """Creates a "user" for a new subscription. This method calls
+        the same-named method in the hookset to actually perform the action."""
         user = hookset.create_user(
             email=email, first_name=first_name, last_name=last_name
         )
@@ -176,12 +258,19 @@ class SubscriptionService:
             subscription = self._new_subscription(user=user, mailing_list=mailing_list)
         return subscription
 
-    def force_subscribe(self, *, user, mailing_list):
+    def force_subscribe(
+        self, *, user, mailing_list: models.MailingList
+    ):  # -> models.Subscription:
+        """Creates an active subscription skipping any confirmation email."""
         subscription = self._subscribe(user=user, mailing_list=mailing_list)
         self._confirm_subscription(subscription)
         return subscription
 
-    def subscribe(self, *, user, mailing_list, force_confirm=False):
+    def subscribe(
+        self, *, user, mailing_list: models.MailingList, force_confirm=False
+    ):  # -> models.Subscription:
+        """Creates a subscription and sends the activation email (or just
+        activates it based on settings)"""
         if models.GlobalDeny.objects.filter(user=user).exists():
             return
         subscription = self._subscribe(user=user, mailing_list=mailing_list)
@@ -196,7 +285,8 @@ class SubscriptionService:
             self._confirm_subscription(subscription)
         return subscription
 
-    def confirm_subscription(self, *, token):
+    def confirm_subscription(self, *, token: str):  # -> models.Subscription:
+        """Activates a subscription"""
         # get subscription
         try:
             subscription = models.Subscription.objects.get(token=token)
@@ -210,7 +300,8 @@ class SubscriptionService:
             subscription=subscription, to_status=SubscriptionStatusEnum.UNSUBSCRIBED
         )
 
-    def unsubscribe(self, *, token):
+    def unsubscribe(self, *, token: str):  # -> models.Subscription:
+        """Deactivates a subscription"""
         try:
             subscription = models.Subscription.objects.get(token=token)
         except models.Subscription.DoesNotExist:
@@ -220,6 +311,8 @@ class SubscriptionService:
 
 
 class SubmissionService:
+    """Manages send activities for published submissions."""
+
     def _get_included_subscribers(self, submission):
         # get current list of subscribers
         subscriptions = (
@@ -233,29 +326,31 @@ class SubmissionService:
         )
         return subscriptions
 
-    def _send_message(self, message, subscription):
+    def _send_message(self, *, message, subscription, template_set, **kwargs):
         hookset.send_message(
-            to=[subscription.user.email],
             from_email=subscription.mailing_list.sender_tag,
             **MessageService().prepare_message_kwargs(
-                message=message, subscription=subscription
+                message=message, subscription=subscription, template_set=template_set
             ),
+            **kwargs,
         )
 
-    def _ensure_sent(self, *, subscription, submission):
+    def _ensure_sent(self, *, subscription, submission, **kwargs):
         """Idempotent sending of message, returns ``True`` if email was
         actually sent (returns ``False`` if email was sent previously)."""
         # check if this has been sent already
-        kwargs = {
+        sending_kwargs = {
             "submission": submission,
             "subscription": subscription,
         }
-        if models.Sending.objects.filter(**kwargs).exists():
+        if models.Sending.objects.filter(**sending_kwargs).exists():
             return False
         # send email
-        self._send_message(message=submission.message, subscription=subscription)
+        self._send_message(
+            message=submission.message, subscription=subscription, **kwargs
+        )
         # log sending of email
-        models.Sending.objects.create(**kwargs)
+        models.Sending.objects.create(**sending_kwargs)
         return True
 
     def _rate_limit(self, total_send_count):
@@ -267,13 +362,22 @@ class SubmissionService:
         if not batch_sleep and settings.MAILINGLIST_EMAIL_DELAY is not None:
             time.sleep(settings.MAILINGLIST_EMAIL_DELAY)
 
-    def process_submission(self, submission, *, send_count=0):
+    def process_submission(
+        self, submission: models.Submission, *, send_count: int = 0
+    ):  # -> int:
+        """Sends submitted message to each (non-excluded) subscriber,
+        observing rate limits configured in settings."""
         submission.status = SubmissionStatusEnum.SENDING
         submission.save()
         subscriptions = self._get_included_subscribers(submission)
+        template_set = TemplateSet(mailing_list=submission.message.mailing_list)
+        attachments = list(submission.message.attachments.all())
         for subscription in subscriptions:
             did_send = self._ensure_sent(
-                submission=submission, subscription=subscription
+                submission=submission,
+                subscription=subscription,
+                template_set=template_set,
+                attachments=attachments,
             )
             if not did_send:
                 continue
@@ -294,18 +398,21 @@ class SubmissionService:
         )
         return list(sending_submissions) + list(published_submissions)
 
-    def process_submissions(self):
+    def process_submissions(self):  # -> None:
+        """Finds all unsent published ``Submission`` instances and sends them."""
         send_count = 0
         for published_submission in self._get_outstanding_submissions():
             send_count = self.process_submission(
                 published_submission, send_count=send_count
             )
 
-    def publish(self, submission):
+    def publish(self, submission: models.Submission):  # -> None:
+        """Mark a ``Submission`` for sending."""
         submission.published = now()
         submission.status = SubmissionStatusEnum.PENDING
         submission.save()
 
-    def submit_message(self, message):
+    def submit_message(self, message: models.Message):  # -> models.Submission:
+        """Creates a ``Submission`` instance for a given ``Message`` instance."""
         submission, _ = models.Submission.objects.get_or_create(message=message)
         return submission

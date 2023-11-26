@@ -1,3 +1,4 @@
+from base64 import b64decode
 from datetime import timedelta
 from random import randint
 
@@ -108,6 +109,24 @@ With paragraphs of _verbosely_ **exquisite** text!
     )
     yield message_part
     message_part.delete()
+
+
+@pytest.fixture
+def fake_image():
+    _image = "/9j/4AAQSkZJRgABAQEBLAEsAAD/2Q=="
+    image_data = b64decode(_image)
+    image_name = "testing.jpg"
+    return ContentFile(image_data, image_name)
+
+
+@pytest.fixture
+def message_attachment(message, fake_image):
+    message_attachment = models.MessageAttachment.objects.create(
+        message=message,
+        file=fake_image,
+    )
+    yield message_attachment
+    message_attachment.delete()
 
 
 @pytest.fixture

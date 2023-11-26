@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_celery_beat",
     "mailinglist",
 ]
 
@@ -55,7 +56,7 @@ ROOT_URLCONF = "test_project.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "test_project" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -123,5 +124,13 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+CELERY_BROKER_URL = "redis://redis"
+CELERY_TASK_DEFAULT_QUEUE = "test_project"
+CELERY_TIMEZONE = "America/Chicago"
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 MAILINGLIST_BASE_URL = "http://ilocalhost:8000"
 MAILINGLIST_DEFAULT_SENDER_EMAIL = "test@test.com"
+
+MAILIGLIST_HOOKSET = "test_project.hooks.MyCustomHookset"

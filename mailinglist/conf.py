@@ -28,7 +28,7 @@ class MailinglistAppConf(AppConf):
     USER_MODEL = settings.AUTH_USER_MODEL
     HOOKSET = "mailinglist.hooks.MailinglistDefaultHookset"
     CONFIRM_EMAIL_SUBSCRIBE = True
-    EMAIL_DELAY = None
+    EMAIL_DELAY = 0.1
     BATCH_DELAY = 10  # seconds
     BATCH_SIZE = 100
 
