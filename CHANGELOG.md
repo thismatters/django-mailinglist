@@ -16,6 +16,7 @@ Changes to this project will be documented in this file.
 - Contents to `message_subject.txt` template.
 - Management command, celery tasks for processing published submissions.
 - View and URL for index of mailing list archives.
+- Documentation generation within CI pipeline
 ### Changed
 - More fiddling with the badges
 - Message preparation pipeline to reduce template lookups

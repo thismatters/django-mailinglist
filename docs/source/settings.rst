@@ -32,6 +32,7 @@ User model
     * ``first_name``
     * ``last_name``
     * ``email``
+
 Any subclass of ``django.contrib.auth.models.AbstractUser`` will be more than sufficient. The default configuration is that the app will use the ``AUTH_USER_MODEL`` configured in settings::
 
     MAILINGLIST_USER_MODEL = settings.AUTH_USER_MODEL

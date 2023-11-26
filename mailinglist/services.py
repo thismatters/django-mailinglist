@@ -183,7 +183,6 @@ class SubscriptionService:
         )
 
     def _generate_token(self, *, user, mailing_list):
-        # TODO: this might go into the hookset
         _s = randint(0, len(user.email) - 1)
         _hash = str(hash(f"{user.email[0:_s]}{mailing_list}{user.email[_s:0]}"))
         _prefix = self._random_string(length=45 - len(_hash))
