@@ -54,7 +54,7 @@ class TemplateSet:
             ]
         )
 
-    def render_to_dict(self, context: dict) -> dict[str, str]:
+    def render_to_dict(self, context: dict):  # -> dict[str, str]:
         """Renders each template in the set and arranges the text into a
         dictionary, requires the context for the specific message and
         subscription"""
@@ -125,7 +125,7 @@ class MessageService:
         subscription: models.Subscription,
         template_set: TemplateSet,
         message: models.Message = None,
-    ) -> dict:
+    ):  # -> dict:
         _kwargs = template_set.render_to_dict(
             context={"subscription": subscription, "message": message}
         )
@@ -143,7 +143,7 @@ class MessageService:
         subscription: models.Subscription,
         template_set: TemplateSet,
         message: models.Message,
-    ) -> dict:
+    ):  # -> dict:
         """Composes and structures outgoing message data for email sending"""
         return self._prepare_kwargs(
             message=message,
@@ -260,7 +260,7 @@ class SubscriptionService:
 
     def force_subscribe(
         self, *, user, mailing_list: models.MailingList
-    ) -> models.Subscription:
+    ):  # -> models.Subscription:
         """Creates an active subscription skipping any confirmation email."""
         subscription = self._subscribe(user=user, mailing_list=mailing_list)
         self._confirm_subscription(subscription)
@@ -268,7 +268,7 @@ class SubscriptionService:
 
     def subscribe(
         self, *, user, mailing_list: models.MailingList, force_confirm=False
-    ) -> models.Subscription:
+    ):  # -> models.Subscription:
         """Creates a subscription and sends the activation email (or just
         activates it based on settings)"""
         if models.GlobalDeny.objects.filter(user=user).exists():
@@ -285,7 +285,7 @@ class SubscriptionService:
             self._confirm_subscription(subscription)
         return subscription
 
-    def confirm_subscription(self, *, token: str) -> models.Subscription:
+    def confirm_subscription(self, *, token: str):  # -> models.Subscription:
         """Activates a subscription"""
         # get subscription
         try:
@@ -300,7 +300,7 @@ class SubscriptionService:
             subscription=subscription, to_status=SubscriptionStatusEnum.UNSUBSCRIBED
         )
 
-    def unsubscribe(self, *, token: str) -> models.Subscription:
+    def unsubscribe(self, *, token: str):  # -> models.Subscription:
         """Deactivates a subscription"""
         try:
             subscription = models.Subscription.objects.get(token=token)
@@ -364,7 +364,7 @@ class SubmissionService:
 
     def process_submission(
         self, submission: models.Submission, *, send_count: int = 0
-    ) -> int:
+    ):  # -> int:
         """Sends submitted message to each (non-excluded) subscriber,
         observing rate limits configured in settings."""
         submission.status = SubmissionStatusEnum.SENDING
@@ -398,7 +398,7 @@ class SubmissionService:
         )
         return list(sending_submissions) + list(published_submissions)
 
-    def process_submissions(self) -> None:
+    def process_submissions(self):  # -> None:
         """Finds all unsent published ``Submission`` instances and sends them."""
         send_count = 0
         for published_submission in self._get_outstanding_submissions():
@@ -406,13 +406,13 @@ class SubmissionService:
                 published_submission, send_count=send_count
             )
 
-    def publish(self, submission: models.Submission) -> None:
+    def publish(self, submission: models.Submission):  # -> None:
         """Mark a ``Submission`` for sending."""
         submission.published = now()
         submission.status = SubmissionStatusEnum.PENDING
         submission.save()
 
-    def submit_message(self, message: models.Message) -> models.Submission:
+    def submit_message(self, message: models.Message):  # -> models.Submission:
         """Creates a ``Submission`` instance for a given ``Message`` instance."""
         submission, _ = models.Submission.objects.get_or_create(message=message)
         return submission
