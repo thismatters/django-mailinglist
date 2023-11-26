@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_extensions",
     "django_celery_beat",
     "mailinglist",
 ]
@@ -123,6 +124,14 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+GRAPH_MODELS = {
+    "app_labels": [
+        "mailinglist",
+    ],
+}
+
 
 CELERY_BROKER_URL = "redis://redis"
 CELERY_TASK_DEFAULT_QUEUE = "test_project"

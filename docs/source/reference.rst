@@ -7,6 +7,7 @@ Reference
 Models
 ------
 
+.. image:: _static/models.png
 
 .. automodule:: mailinglist.models
     :members:

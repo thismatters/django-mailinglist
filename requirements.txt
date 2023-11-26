@@ -2,15 +2,23 @@
 
 Django==4.2.7
 
+# integrations
 celery[redis]==5.3.6
 django-celery-beat==2.5.0
 
+# code quality
 black==23.11.0
 isort==5.12.0
 pyproject-flake8==6.1.0
 
+# basic testing
 pytest==7.4.3
 pytest-cov==4.1.0
 pytest-django==4.7.0
 
+# matrix testing
 tox==4.11.3
+
+# UML diagram generation
+django-extensions==3.2.3
+pygraphviz==1.11
