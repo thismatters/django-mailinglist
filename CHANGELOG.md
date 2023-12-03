@@ -7,6 +7,17 @@ Changes to this project will be documented in this file.
 ### Removed
 ### Fixed
 
+## [0.1.5]
+### Added
+- Demo of pluggable user model to `test_project`.
+### Fixed
+- **BREAKING!** Pluggable user model. This requires that you roll back your migrations for this app and reapply them.
+- Project URL in setup.py.
+
+## [0.1.4]
+### Added
+- Models graph to documentation
+- Docs badge to readme
 
 ## [0.1.3]
 ### Added

@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        migrations.swappable_dependency(settings.MAILINGLIST_USER_MODEL),
     ]
 
     operations = [
@@ -115,7 +115,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="subscriptions",
-                        to=settings.AUTH_USER_MODEL,
+                        to=settings.MAILINGLIST_USER_MODEL,
                     ),
                 ),
             ],
@@ -260,7 +260,7 @@ class Migration(migrations.Migration):
                     models.OneToOneField(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="mailinglist_deny",
-                        to=settings.AUTH_USER_MODEL,
+                        to=settings.MAILINGLIST_USER_MODEL,
                     ),
                 ),
             ],
