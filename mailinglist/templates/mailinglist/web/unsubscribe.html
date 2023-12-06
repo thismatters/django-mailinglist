@@ -8,6 +8,6 @@
 {% trans 'The token in the URL is invalid! Sorry.' %}
 {% trans 'Only the URL in your newsletter email will work!' %}
 {% url 'mailinglist:global_deny' as deny_url %}
-{% blocktrans with deny_url=deny_url %}Alternately, you can <a href="{{ deny_url }}">globally unsubscribe from all mailing lists on this site.{% endblocktrans %}</a>
+{% blocktrans with deny_url=deny_url %}Alternately, you can <a href="{{ deny_url }}">globally unsubscribe</a> from all mailing lists on this site.{% endblocktrans %}
 </p>
 {% endif %}
