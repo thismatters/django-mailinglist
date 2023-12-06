@@ -1,3 +1,4 @@
+{% load i18n %}
 # {{ message.mailing_list.name }}
 
 ## {{ message.title }}
@@ -11,8 +12,8 @@
 {% endfor %}
 ++++++++++++++++++++
 {% if message.mailing_list.visible %}
-Read online: {{ BASE_URL }}{% url 'mailinglist:archive' message.mailing_list.slug message.slug %}
+{% trans 'Read message online' %}: {{ BASE_URL }}{% url 'mailinglist:archive' message.mailing_list.slug message.slug %}
 {% endif %}
 {% if subscription %}
-Unsubscribe: {{ BASE_URL }}{% url 'mailinglist:unsubscribe' subscription.token %}
+{% trans 'Unsubscribe' %}: {{ BASE_URL }}{% url 'mailinglist:unsubscribe' subscription.token %}
 {% endif %}
