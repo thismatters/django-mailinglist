@@ -1,4 +1,4 @@
-<h1>Hello</h1>
-<p>You are globally unsubscribing from "{{ BASE_URL }}".</p>
-<p>You should be receiving an email shortly to confirm your email address. Click the link in that email to unsubscribe.
-</p>
+{% load i18n %}
+<h1>{% trans 'Hello' %}</h1>
+<p>{% blocktrans with url=BASE_URL %}You are globally unsubscribing from "{{ url }}".{% endblocktrans %}</p>
+<p>{% trans 'You should be receiving an email shortly to confirm your email address. Click the link in that email to unsubscribe.' %}</p>

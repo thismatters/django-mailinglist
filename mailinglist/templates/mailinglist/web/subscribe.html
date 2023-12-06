@@ -1,7 +1,8 @@
-<h1>Hello</h1>
-<p>You are about to subscribe to the mailing list "{{ object.name }}".</p>
+{% load i18n %}
+<h1>{% trans 'Hello' %}</h1>
+<p>{% blocktrans with name=object.name %}You are about to subscribe to the mailing list "{{ name }}".{% endblocktrans %}</p>
 <form action="{% url 'mailinglist:subscribe' object.slug %}" method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="Submit">
+    <input type="submit" value="{% trans 'Submit' %}%">
 </form>

@@ -1,12 +1,13 @@
-<h1>Hello</h1>
+{% load i18n %}
+<h1>{% trans 'Hello' %}</h1>
 
 {% if is_subscription %}
 {% if is_global_unsubscription %}
-<p>You have been globally unsubscribed and added to our deny list. You will not get any more messages from us.</p>
+<p>{% trans 'You have been globally unsubscribed and added to our deny list. You will not get any more messages from us.' %}</p>
 {% else %}
-<p>Thank you for confirming your email. You will now be added to the mailing list.</p>
+<p>{% trans 'Thank you for confirming your email. You will now be added to the mailing list.' %}</p>
 {% endif %}
-<p><a href="{% url 'mailinglist:subscriptions' token %}">Manage Subscriptions</a></p>
+<p><a href="{% url 'mailinglist:subscriptions' token %}">{% trans 'Manage Subscriptions' %}</a></p>
 {% else %}
-<p>The token in the URL is invalid! Sorry.</p>
+<p>{% trans 'The token in the URL is invalid! Sorry.' %}</p>
 {% endif %}
