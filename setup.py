@@ -28,7 +28,7 @@ setup(
     ],
     author="Paul Stiverson",
     author_email="paul@thismatters.net",
-    url="http://github.com/thismatters/django-maillinglist/",
+    url="http://github.com/thismatters/django-mailinglist/",
     packages=find_packages(exclude=("tests", "test_project")),
     include_package_data=True,
     python_requires=">=3.8",

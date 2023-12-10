@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.conf import settings
 
 from mailinglist.hooks import MailinglistDefaultHookset
@@ -14,7 +15,6 @@ class MyCustomHookset(MailinglistDefaultHookset):
             if user.email == _email:
                 return user
         user = user_model.objects.create(
-            username=f"user{hash(email)}",
             email=email,
             first_name=first_name,
             last_name=last_name,
