@@ -1,6 +1,7 @@
-<h1>Current Subscriptions</h1>
+{% load i18n %}
+<h1>{% trans 'Current Subscriptions' %}</h1>
 <form action="{% url 'mailinglist:subscriptions' object.token %}" method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="Submit">
+    <input type="submit" value="{% trans 'Submit' %}%">
 </form>

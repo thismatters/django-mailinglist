@@ -1,9 +1,9 @@
-Hello,
+{% load i18n %}
+{% trans 'Hello,' %}
 
-You have indicated that you wish to globally unsubscribe from all mailing lists at "{{ BASE_URL }}". If you have received this message in error, kindly ignore it.
+{% blocktrans with url=BASE_URL %}You have indicated that you wish to globally unsubscribe from all mailing lists at "{{ url }}". If you have received this message in error, kindly ignore it.{% endblocktrans %}
 
-If you do wish to globally unsubscribe, visit the the URL below:
+{% trans 'If you do wish to globally unsubscribe, click the URL below' %}:
 {{ BASE_URL }}{% url 'mailinglist:subscribe_confirm' subscription.token %}
 
-Thanks
-- {{ DEFAULT_SENDER_NAME }}
+{% trans 'Thanks' %}, {{ DEFAULT_SENDER_NAME }}<

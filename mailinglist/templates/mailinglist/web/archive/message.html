@@ -1,5 +1,6 @@
+{% load i18n %}
 <h1>{{ object.title}}</h1>
-<h2>to {{ object.mailing_list.name }} on {{ object.submission.published }}</h2>
+<h2>{% trans 'to' %} {{ object.mailing_list.name }} {% trans 'on' %} {{ object.submission.published }}</h2>
 
 {% for part in object.message_parts.all %}
 <h3>{{ part.heading }}</h3>
@@ -11,7 +12,7 @@
 
 {% for attachment in message.attachments.all %}
     {% if forloop.first %}
-<strong>Attachments</strong>
+<strong>{% trans 'Attachments' %}</strong>
 <ul>
     {% endif %}
     <li><a href="{{ attachment.file.url }}">{{ attachment.filename }}</a> ({{ attachment.file.size|filesizeformat }})</li>

@@ -1,1 +1,2 @@
-Global Unsubscribe from "{{ BASE_URL }}"
+{% load i18n %}
+{% blocktrans with url=BASE_URL %}Global Unsubscribe from "{{ url }}"{% endblocktrans %}
