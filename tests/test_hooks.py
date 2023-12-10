@@ -2,6 +2,7 @@ from unittest.mock import patch, Mock
 import pytest
 from mailinglist.hooks import MailinglistDefaultHookset
 from django.core.exceptions import ValidationError
+from django.test import override_settings
 
 
 class FileNameyThingy:
@@ -10,6 +11,40 @@ class FileNameyThingy:
 
 
 class TestMailinglistDefaultHookset:
+    def test_create_user(self, db):
+        user = MailinglistDefaultHookset().create_user(
+            email="test@email.com",
+            first_name="testy",
+            last_name="mctestface",
+        )
+        assert user.email == "test@email.com"
+        assert user.first_name == "testy"
+        assert user.last_name == "mctestface"
+
+    def test_create_user_exists(self, user):
+        _user = MailinglistDefaultHookset().create_user(
+            email=user.email,
+            first_name=user.first_name + "asdfsadf",
+            last_name=user.last_name + "zxcvzxcv",
+        )
+        assert _user.pk == user.pk
+        assert _user.first_name == user.first_name  # didn't get updated
+        assert _user.last_name == user.last_name  # didn't get updated
+
+    @override_settings(MAILINGLIST_USER_MODEL="custom.override")
+    @patch("django.apps.apps.get_model")
+    def test_create_user_other_model(self, p_get_model):
+        _user_model = Mock()
+        _user_model.objects.get.return_value = "asdf"
+        p_get_model.return_value = _user_model
+        user = MailinglistDefaultHookset().create_user(
+            email="test@email.com",
+            first_name="testy",
+            last_name="mctestface",
+        )
+        p_get_model.assert_called_once_with("custom.override")
+        assert user == "asdf"
+
     @patch("mailinglist.hooks.EmailMultiAlternatives")
     def test_send_message(self, p_email_alternatives, message_attachment):
         _message = Mock()
