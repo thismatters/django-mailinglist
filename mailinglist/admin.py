@@ -11,8 +11,6 @@ from django.urls import path, reverse
 from django.utils.encoding import force_str
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from modeltranslation.admin import TranslationStackedInline
-
 from mailinglist import models
 from mailinglist.admin_forms import ConfirmForm, ImportForm, \
     SubmissionModelForm
@@ -242,7 +240,7 @@ class GlobalDenyAdmin(UnchangingAdminMixin, admin.ModelAdmin):
     date_hierarchy = "created"
 
 
-class MessagePartInline(TranslationStackedInline):
+class MessagePartInline(admin.StackedInline):
     model = models.MessagePart
     extra = 2
 
