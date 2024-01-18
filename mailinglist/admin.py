@@ -1,6 +1,5 @@
 import logging
 
-logger = logging.getLogger(__name__)
 from functools import update_wrapper
 
 from django.contrib import admin, messages
@@ -13,13 +12,18 @@ from django.utils.encoding import force_str
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from mailinglist import models
-from mailinglist.admin_forms import ConfirmForm, ImportForm, SubmissionModelForm
-from mailinglist.services import MessageService, SubmissionService, SubscriptionService
+from mailinglist.admin_forms import ConfirmForm, ImportForm, \
+    SubmissionModelForm
+from mailinglist.services import MessageService, SubmissionService, \
+    SubscriptionService
+
+
+logger = logging.getLogger(__name__)
 
 
 class ExtendibleModelAdminMixin:
     def _getobj(self, request, object_id):
-        opts = self.model._meta
+        opts = self.model._meta  # pylint:disable=protected-access
 
         try:
             obj = self.get_queryset(request).get(pk=unquote(object_id))
@@ -44,10 +48,12 @@ class ExtendibleModelAdminMixin:
         return update_wrapper(wrapper, view)
 
     def _view_name(self, name):
-        return f"{self.model._meta.app_label}_{self.model._meta.model_name}_{name}"
+        return f"{self.model._meta.app_label}_{self.model._meta.model_name}"\
+            f"_{name}"  # pylint:disable=protected-access
 
 
 class ImmutableAdminMixin:
+    # pylint:disable=unused-argument
     can_delete = False
 
     def has_add_permission(self, request, obj):
@@ -90,6 +96,7 @@ class SubscriptionAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
     inlines = (SubscriptionChangeInline, SendingInline)
     actions = ("make_subscribed", "make_unsubscribed")
 
+    # pylint:disable=unused-argument
     def save_model(self, request, obj, form, change):
         if not change:
             SubscriptionService().subscribe(
@@ -104,6 +111,7 @@ class SubscriptionAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
         service = SubscriptionService()
         rows_updated = 0
         for row in queryset:
+            # pylint:disable=unused-argument,protected-access
             service._confirm_subscription(row)
             rows_updated += 1
         self.message_user(
@@ -116,10 +124,12 @@ class SubscriptionAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
         service = SubscriptionService()
         rows_updated = 0
         for row in queryset:
+            # pylint:disable=unused-argument,protected-access
             service._confirm_unsubscription(row)
             rows_updated += 1
         self.message_user(
-            request, f"{rows_updated} users have been successfully unsubscribed."
+            request,
+            f"{rows_updated} users have been successfully unsubscribed."
         )
 
     make_unsubscribed.short_description = "Unsubscribe selected users"
@@ -137,7 +147,8 @@ class SubscriptionAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
                     "mailing_list"
                 ].pk
 
-                confirm_url = reverse("admin:mailinglist_subscription_import_confirm")
+                confirm_url = reverse(
+                    "admin:mailinglist_subscription_import_confirm")
                 return HttpResponseRedirect(confirm_url)
         else:
             form = ImportForm()
@@ -169,7 +180,10 @@ class SubscriptionAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
                     service = SubscriptionService()
                     for _user in addresses.values():
                         user = service.create_user(**_user)
-                        service.force_subscribe(user=user, mailing_list=mailing_list)
+                        service.force_subscribe(
+                            user=user,
+                            mailing_list=mailing_list
+                        )
                 finally:
                     del request.session["addresses"]
                     del request.session["mailing_list_pk"]
@@ -179,7 +193,8 @@ class SubscriptionAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
                     f"{len(addresses)} subscriptions have been added.",
                 )
 
-                changelist_url = reverse("admin:mailinglist_subscription_changelist")
+                changelist_url = reverse(
+                    "admin:mailinglist_subscription_changelist")
                 return HttpResponseRedirect(changelist_url)
         else:
             form = ConfirmForm()
@@ -190,7 +205,7 @@ class SubscriptionAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
             {"form": form, "subscribers": addresses},
         )
 
-    """ URLs """
+    # """ URLs """
 
     def get_urls(self):
         urls = super().get_urls()
@@ -212,6 +227,8 @@ class SubscriptionAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
 
 
 class UnchangingAdminMixin:
+
+    # pylint:disable=unused-argument
     def has_change_permission(self, request, obj=None):
         return False
 
@@ -258,7 +275,8 @@ class MessageAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
     @xframe_options_sameorigin
     def preview_html(self, request, object_id):
         message = self._getobj(request, object_id)
-        html_body = MessageService().prepare_message_preview_html(message=message)
+        html_body = MessageService().prepare_message_preview_html(
+            message=message)
         return HttpResponse(html_body)
 
     @xframe_options_sameorigin
@@ -278,7 +296,7 @@ class MessageAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
 
         return HttpResponseRedirect(change_url)
 
-    """ URLs """
+    # """ URLs """
 
     def get_urls(self):
         urls = super().get_urls()
@@ -324,13 +342,15 @@ class SubmissionAdmin(ExtendibleModelAdminMixin, admin.ModelAdmin):
         for row in queryset:
             service.publish(row)
             rows_updated += 1
-        self.message_user(request, f"{rows_updated} submissions have been published.")
+        self.message_user(request,
+            f"{rows_updated} submissions have been published.")
 
     def publish_view(self, request, object_id):
         service = SubmissionService()
         service.publish(self._getobj(request, object_id))
 
-        messages.success(request, f"Submission {object_id} has been published.")
+        messages.success(request,
+            f"Submission {object_id} has been published.")
 
         changelist_url = reverse("admin:mailinglist_submission_changelist")
         return HttpResponseRedirect(changelist_url)

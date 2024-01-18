@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-
+{% load i18n %}
 <html>
 <head>
     <meta charset="utf-8">
@@ -18,10 +18,10 @@
     <hr />
     <ul>
         {% if message.mailing_list.visible %}
-        <li><a href="{{ BASE_URL }}{% url 'mailinglist:archive' message.mailing_list.slug message.slug %}">Read message online</a></li>
+        <li><a href="{{ BASE_URL }}{% url 'mailinglist:archive' message.mailing_list.slug message.slug %}">{% trans 'Read message online' %}</a></li>
         {% endif %}
         {% if subscription %}
-        <li><a href="{{ BASE_URL }}{% url 'mailinglist:unsubscribe' subscription.token %}">Unsubscribe</a></li>
+        <li><a href="{{ BASE_URL }}{% url 'mailinglist:unsubscribe' subscription.token %}">{% trans 'Unsubscribe' %}</a></li>
         {% endif %}
     </ul>
 </body>

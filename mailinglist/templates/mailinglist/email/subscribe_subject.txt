@@ -1,1 +1,2 @@
-Subscription Confirmation for "{{ subscription.mailing_list.name }}"
+{% load i18n %}
+{% blocktrans with name=subscription.mailing_list.name %}Subscription Confirmation for "{{ name }}"{% endblocktrans %}

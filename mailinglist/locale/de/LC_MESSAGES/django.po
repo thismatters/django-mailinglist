@@ -1,0 +1,245 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-12-06 14:54+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: templates/mailinglist/email/global-deny/subscribe.html:2
+#: templates/mailinglist/email/global-deny/subscribe.txt:2
+#: templates/mailinglist/email/subscribe.html:2
+#: templates/mailinglist/email/subscribe.txt:2
+msgid "Hello,"
+msgstr "Hallo,"
+
+#: templates/mailinglist/email/global-deny/subscribe.html:3
+#: templates/mailinglist/email/global-deny/subscribe.txt:4
+#, python-format
+msgid ""
+"You have indicated that you wish to globally unsubscribe from all mailing "
+"lists at \"%(url)s\". If you have received this message in error, kindly "
+"ignore it."
+msgstr ""
+"Sie haben angegeben, dass Sie sich global von allen Verteilerlisten auf "
+"\"%(url)s\" abmelden möchten. Falls Sie diese Nachricht irrtümlich erhalten "
+"haben, ignorieren sie sie bitte."
+
+#: templates/mailinglist/email/global-deny/subscribe.html:4
+msgid "If you do wish to globally unsubscribe, click the link below"
+msgstr ""
+"Falls sie sich global von allen Verteilerlisten abmelden möchten, klicken "
+"Sie auf nachfolgenden Link"
+
+#: templates/mailinglist/email/global-deny/subscribe.html:5
+msgid "Confirm global unsubscribe"
+msgstr "Globale Abmeldung bestätigen"
+
+#: templates/mailinglist/email/global-deny/subscribe.html:6
+#: templates/mailinglist/email/global-deny/subscribe.txt:9
+#: templates/mailinglist/email/subscribe.html:6
+#: templates/mailinglist/email/subscribe.txt:9
+msgid "Thanks"
+msgstr "Danke"
+
+#: templates/mailinglist/email/global-deny/subscribe.txt:6
+msgid "If you do wish to globally unsubscribe, click the URL below"
+msgstr ""
+"Falls sie sich global von allen Verteilerlisten abmelden möchten, klicken "
+"Sie auf nachfolgende URL"
+
+#: templates/mailinglist/email/global-deny/subscribe_subject.txt:2
+#, python-format
+msgid "Global Unsubscribe from \"%(url)s\""
+msgstr "Global von \"%(url)s\" abmelden"
+
+#: templates/mailinglist/email/message.html:21
+#: templates/mailinglist/email/message.txt:15
+msgid "Read message online"
+msgstr "Nachricht online lesen"
+
+#: templates/mailinglist/email/message.html:24
+#: templates/mailinglist/email/message.txt:18
+msgid "Unsubscribe"
+msgstr "Abmelden"
+
+#: templates/mailinglist/email/subscribe.html:3
+#: templates/mailinglist/email/subscribe.txt:4
+#, python-format
+msgid ""
+"You have indicated that you wish to join the mailing list \"%(name)s\". If "
+"you have received this message in error, kindly ignore it."
+msgstr ""
+"Sie haben angedeutet, dass Sie der Verteilerliste \"%(name)s\" beitreten "
+"möchten. Falls sie diese Nachricht irrtümlich erhalten haben, ignorieren sie "
+"sie bitte."
+
+#: templates/mailinglist/email/subscribe.html:4
+msgid "If you do wish to join the mailing list please click the link below"
+msgstr ""
+"Falls sie der Verteilerliste beitreten möchten, betätigen Sie nachfolgenden "
+"Link"
+
+#: templates/mailinglist/email/subscribe.html:5
+msgid "Confirm email and join mailing list"
+msgstr "E-Mail bestätigen und Verteilerliste beitreten"
+
+#: templates/mailinglist/email/subscribe.txt:6
+msgid "If you do wish to join the mailing list please click the URL below"
+msgstr ""
+"Falls sie der Verteilerliste beitreten möchten, betätigen Sie nachfolgende "
+"URL"
+
+#: templates/mailinglist/email/subscribe_subject.txt:2
+#, python-format
+msgid "Subscription Confirmation for \"%(name)s\""
+msgstr "Abonnement - Bestätigung für \"%(name)s\""
+
+#: templates/mailinglist/web/archive/archives.html:2
+msgid "All Mailing List Archives"
+msgstr ""
+
+#: templates/mailinglist/web/archive/index.html:2
+msgid "Archive of"
+msgstr "Archiv von"
+
+#: templates/mailinglist/web/archive/message.html:3
+msgid "to"
+msgstr "von"
+
+#: templates/mailinglist/web/archive/message.html:3
+msgid "on"
+msgstr "am"
+
+#: templates/mailinglist/web/archive/message.html:15
+msgid "Attachments"
+msgstr "Anhänge"
+
+#: templates/mailinglist/web/global_unsubscribe.html:2
+#: templates/mailinglist/web/global_unsubscribe_success.html:2
+#: templates/mailinglist/web/subscribe.html:2
+#: templates/mailinglist/web/subscribe_confirm.html:2
+msgid "Hello"
+msgstr "Hallo"
+
+#: templates/mailinglist/web/global_unsubscribe.html:3
+#, python-format
+msgid ""
+"You are about to globally unsubscribe from all mailing list at \"%(url)s\"."
+msgstr ""
+"Sie sind dabei, sich global von allen Verteilerlisten auf \"%(url)s\" "
+"abzumelden."
+
+#: templates/mailinglist/web/global_unsubscribe.html:7
+#: templates/mailinglist/web/subscribe.html:7
+#: templates/mailinglist/web/subscriptions.html:6
+msgid "Submit"
+msgstr "Abschicken"
+
+#: templates/mailinglist/web/global_unsubscribe_success.html:3
+#, python-format
+msgid "You are globally unsubscribing from \"%(url)s\"."
+msgstr "Sie melden sich global von \"%(url)s\" ab."
+
+#: templates/mailinglist/web/global_unsubscribe_success.html:4
+msgid ""
+"You should be receiving an email shortly to confirm your email address. "
+"Click the link in that email to unsubscribe."
+msgstr ""
+"Sie sollten in Kürze eine E-Mail zur Bestätigung ihrer E-Mail Adresse "
+"erhalten. Betätigen Sie den Link in dieser E-Mail, um sich endgültig "
+"vom Verteiler abzumelden."
+
+#: templates/mailinglist/web/subscribe.html:3
+#, python-format
+msgid "You are about to subscribe to the mailing list \"%(name)s\"."
+msgstr "Sie sind dabei, dem Verteiler \"%(name)s\" beizutreten."
+
+#: templates/mailinglist/web/subscribe_confirm.html:6
+msgid ""
+"You have been globally unsubscribed and added to our deny list. You will not "
+"get any more messages from us."
+msgstr ""
+"Sie wurden global abgemeldet und in unsere Ausschlusslite aufgenommen. Sie "
+"werden keine Nachrichten mehr von uns erhalten."
+
+#: templates/mailinglist/web/subscribe_confirm.html:8
+msgid ""
+"Thank you for confirming your email. You will now be added to the mailing "
+"list."
+msgstr ""
+"Danke für die Bestätigung Ihrer E-Mail Adresse. Sie werden nun dem Verteiler "
+"hinzugefügt."
+
+#: templates/mailinglist/web/subscribe_confirm.html:10
+msgid "Manage Subscriptions"
+msgstr "Abonnements verwalten"
+
+#: templates/mailinglist/web/subscribe_confirm.html:12
+#: templates/mailinglist/web/unsubscribe.html:8
+msgid "The token in the URL is invalid! Sorry."
+msgstr "Der Token in der URL ist ungültig! Entschuldigung."
+
+#: templates/mailinglist/web/subscribe_success.html:2
+msgid "Hello!"
+msgstr "Hallo!"
+
+#: templates/mailinglist/web/subscribe_success.html:3
+#, python-format
+msgid "You are joining mailing list \"%(name)s\"! Congratulations."
+msgstr "Sie treten dem Verteiler \"%(name)s\" bei! Gratulation."
+
+#: templates/mailinglist/web/subscribe_success.html:5
+#, python-format
+msgid ""
+"You should be receiving an email shortly to confirm your email address. "
+"Click the link in that email to fully join \"%(name)s\"."
+msgstr ""
+"Sie sollten in Kürze eine E-Mail zur Bestätigung ihrer E-Mail Adresse "
+"erhalten. Betätigen Sie den Link in dieser E-Mail, um dem Verteiler "
+"\"%(name)s\" endgültig beizutreten."
+
+#: templates/mailinglist/web/subscriptions.html:2
+msgid "Current Subscriptions"
+msgstr "Aktuelle Abonnements"
+
+#: templates/mailinglist/web/unsubscribe.html:3
+msgid "Sorry to see you go!"
+msgstr "Schade dass Sie gehen!"
+
+#: templates/mailinglist/web/unsubscribe.html:4
+msgid "But we totally understand, and we respect your decision"
+msgstr "Aber wir verstehen es und respektieren Ihre Entscheidung"
+
+#: templates/mailinglist/web/unsubscribe.html:6
+msgid "No Subscription Found"
+msgstr "Kein Abonnement gefunden"
+
+#: templates/mailinglist/web/unsubscribe.html:7
+msgid "Bad news. We couldn't find your subscription."
+msgstr "Schade. Wir konnten Ihr Abonnement nicht finden."
+
+#: templates/mailinglist/web/unsubscribe.html:9
+msgid "Only the URL in your newsletter email will work!"
+msgstr "Nur die URL in Ihrer Newsletter E-Mail funktioniert!"
+
+#: templates/mailinglist/web/unsubscribe.html:11
+#, python-format
+msgid ""
+"Alternately, you can <a href=\"%(deny_url)s\">globally unsubscribe</a> from all "
+"mailing lists on this site."
+msgstr ""
+"Alternativ können sie sich von allen Verteilern dieser Seite "
+"<a href=\"%(deny_url)s\">global abmelden</a>."
