@@ -1,6 +1,7 @@
 {% if is_subscription %}
 <h1>Sorry to see you go!</h1>
 <p>But we totally understand, and we respect your decision</p>
+<p><a href="{% url 'mailinglist:subscriptions' token %}">Manage subscriptions</a></p>
 {% else %}
 <h1>No Subscription Found</h1>
 <p>Bad news. We couldn't find your subscription.

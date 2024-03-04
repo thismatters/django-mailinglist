@@ -112,7 +112,7 @@ Finally, submissions are the means by which a message is published and sent. An 
 
 ### Sending
 
-The management command `mailinglist_process_submissions` will go through the sending action for all published submissions. Receiver lists are rendered at the time of sending to include all subscribed users and to exclude any users who have joined the global deny list. Each subscriber gets a message rendered solely for them which contains an unsubscribe link. Each sending is logged with a timestamp so that if a sending action is interrupted the process can be resumed without double-sending messages to any subscriber.
+The management command `process_submissions` will go through the sending action for all published submissions. Receiver lists are rendered at the time of sending to include all subscribed users and to exclude any users who have joined the global deny list. Each subscriber gets a message rendered solely for them which contains an unsubscribe link. Each sending is logged with a timestamp so that if a sending action is interrupted the process can be resumed without double-sending messages to any subscriber.
 
 While sending, a delay can be configured between the sending of each email (`MAILINGLIST_EMAIL_DELAY`), also a delay can be configured between "batches" as well (`MAILINGLIST_BATCH_DELAY`, `MAILINGLIST_BATCH_SIZE`).
 
