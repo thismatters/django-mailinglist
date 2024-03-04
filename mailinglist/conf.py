@@ -18,7 +18,7 @@ class MailinglistAppConf(AppConf):
     BATCH_SIZE = 100
 
     def configure_hookset(self, value):
-        return import_attribute(value)()  # PS: does this work?
+        return import_attribute(value)()
 
     def configure_default_sender_email(self, value):
         if value is None:
