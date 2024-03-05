@@ -7,6 +7,14 @@ Changes to this project will be documented in this file.
 ### Removed
 ### Fixed
 
+## [0.1.6]
+### Added
+- Link to manage subscriptions page from the unsubscribe page
+### Removed
+- Some unnecssary code for dynamically importing modules
+### Fixed
+- Documentation reference to management command
+
 ## [0.1.5]
 ### Added
 - Demo of pluggable user model to `test_project`.

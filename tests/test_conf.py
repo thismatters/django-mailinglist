@@ -1,16 +1,6 @@
 import pytest
-from mailinglist.conf import load_path_attr, MailinglistAppConf
+from mailinglist.conf import MailinglistAppConf
 from django.core.exceptions import ImproperlyConfigured
-
-
-def test_load_path_attr():
-    with pytest.raises(ImproperlyConfigured):
-        load_path_attr("poopy.butthole")
-
-
-def test_load_path_attr_other():
-    with pytest.raises(ImproperlyConfigured):
-        load_path_attr("mailinglist.butthole")
 
 
 class TestMailinglistAppConf:

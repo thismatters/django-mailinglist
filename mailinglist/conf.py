@@ -1,24 +1,9 @@
 import importlib
 
 from appconf import AppConf
+from appconf.utils import import_attribute
 from django.conf import settings  # noqa: F401
 from django.core.exceptions import ImproperlyConfigured
-
-
-def load_path_attr(path):
-    """Gets the module path"""
-    module, attr = path.rsplit(".", maxsplit=1)
-    try:
-        mod = importlib.import_module(module)
-    except ImportError as e:
-        raise ImproperlyConfigured("Error importing {0}: '{1}'".format(module, e))
-    try:
-        attr = getattr(mod, attr)
-    except AttributeError:
-        raise ImproperlyConfigured(
-            "Module '{0}' does not define a '{1}'".format(module, attr)
-        )
-    return attr
 
 
 class MailinglistAppConf(AppConf):
@@ -33,7 +18,7 @@ class MailinglistAppConf(AppConf):
     BATCH_SIZE = 100
 
     def configure_hookset(self, value):
-        return load_path_attr(value)()
+        return import_attribute(value)()
 
     def configure_default_sender_email(self, value):
         if value is None:
