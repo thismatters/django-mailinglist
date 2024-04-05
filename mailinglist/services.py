@@ -322,7 +322,7 @@ class SubmissionService:
             # remove all global denies
             .filter(user__mailinglist_deny__isnull=True)
             # remove all excludes
-            .difference(submission.exclude.all())
+            .exclude(pk__in=submission.exclude.all().values_list("id", flat=True))
         )
         return subscriptions
 
