@@ -8,6 +8,10 @@ Changes to this project will be documented in this file.
 ### Fixed
 
 ## [0.1.6]
+### Fixed
+- Unsupported operator for MySQL database backend. (#11)
+
+## [0.1.6]
 ### Added
 - Link to manage subscriptions page from the unsubscribe page
 ### Removed
